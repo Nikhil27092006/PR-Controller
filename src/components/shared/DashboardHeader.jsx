@@ -3,18 +3,16 @@ import { Link } from 'react-router-dom'
 import { useApp } from '../../store/AppContext'
 
 export default function DashboardHeader({ title, subtitle }) {
-  const { repos, showToast } = useApp()
-  const syncingRepos = repos.filter(r => r.status === 'syncing')
-  const isSyncing = syncingRepos.length > 0
+  const { reposLoading, loadRepositories, showToast } = useApp()
 
-  const handleManualSync = () => {
-    showToast('Manual organizational sync triggered...', 'info')
-    // Trigger mock syncs on repos that are connected
-    repos.forEach(repo => {
-      if (repo.connected && repo.status !== 'syncing') {
-        // Trigger context connection
-      }
-    })
+  const handleManualSync = async () => {
+    showToast('Refreshing repository data...', 'info')
+    try {
+      await loadRepositories()
+      showToast('Repository data refreshed.', 'success')
+    } catch (err) {
+      showToast(err.message || 'Refresh failed', 'error')
+    }
   }
 
   return (
@@ -28,14 +26,14 @@ export default function DashboardHeader({ title, subtitle }) {
         {/* Sync Status Badge / Button */}
         <button 
           onClick={handleManualSync} 
-          className={`btn-sync glass ${isSyncing ? 'is-syncing' : ''}`}
-          disabled={isSyncing}
+          className={`btn-sync glass ${reposLoading ? 'is-syncing' : ''}`}
+          disabled={reposLoading}
           aria-label="Synchronize database"
         >
           <svg className="icon-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
           </svg>
-          <span>{isSyncing ? 'Syncing GitHub...' : 'Sync Now'}</span>
+          <span>{reposLoading ? 'Syncing GitHub...' : 'Sync Now'}</span>
         </button>
 
         {/* Global Search Bar */}

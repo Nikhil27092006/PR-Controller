@@ -68,7 +68,8 @@ export default function Sidebar() {
   const location = useLocation()
   
   const unreadAlerts = alerts.filter(a => !a.read).length
-  const connectedRepos = repos.filter(r => r.connected)
+  // Every repo returned by the API is, by definition, connected —
+  // the real backend has no partial/disconnected repo state.
 
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: ICONS.dashboard },
@@ -127,7 +128,7 @@ export default function Sidebar() {
             }}
           >
             <option value="all">All Connected Repos</option>
-            {connectedRepos.map(r => (
+            {repos.map(r => (
               <option key={r.id} value={r.id}>
                 {r.owner}/{r.name}
               </option>
@@ -157,11 +158,11 @@ export default function Sidebar() {
         <div className="sidebar-user glass-md">
           <Link to="/profile" className="sidebar-user-info">
             <div className="sidebar-user-avatar">
-              {user.avatar}
+              {user.username.slice(0, 2).toUpperCase()}
             </div>
             <div className="sidebar-user-meta">
-              <div className="sidebar-user-name">{user.name}</div>
-              <div className="sidebar-user-role">{user.role}</div>
+              <div className="sidebar-user-name">{user.username}</div>
+              <div className="sidebar-user-role">{user.email}</div>
             </div>
           </Link>
           <button 

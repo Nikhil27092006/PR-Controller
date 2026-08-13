@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../../store/AppContext'
 
 export default function Register() {
-  const { login } = useApp()
+  const { register } = useApp()
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
   const [error, setError] = useState('')
@@ -14,10 +14,14 @@ export default function Register() {
     if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
     if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return }
     setError(''); setLoading(true)
-    await new Promise(r => setTimeout(r, 1000))
-    login(form.email, form.password)
-    setLoading(false)
-    navigate('/dashboard')
+    try {
+      await register(form.name, form.email, form.password)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message || 'Could not create account. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

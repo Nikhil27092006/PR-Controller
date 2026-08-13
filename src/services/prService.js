@@ -1,13 +1,7 @@
-// services/prService.js
+import { apiRequest } from "./api";
 
-import API_BASE_URL from "./api";
+export async function getPRs(repositoryId) {
+  const query = repositoryId ? `?repository_id=${repositoryId}` : "";
 
-export async function getPRs() {
-
-    const response =
-        await fetch(
-            `${API_BASE_URL}/prs`
-        );
-
-    return response.json();
+  return apiRequest(`/prs${query}`);
 }

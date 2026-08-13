@@ -31,7 +31,14 @@ import Settings from './pages/app/Settings'
 import Profile from './pages/app/Profile'
 
 function DashboardLayout() {
-  const { user } = useApp()
+  const { user, authLoading } = useApp()
+
+  // While we're still checking a stored token against /auth/me,
+  // don't redirect yet — otherwise a valid session gets bounced to
+  // /login for a flash on every page refresh.
+  if (authLoading) {
+    return null
+  }
 
   // Redirect to login if user session is not authenticated
   if (!user) {

@@ -96,6 +96,21 @@ class PullRequest(Base):
         onupdate=datetime.utcnow
     )
 
+    merged_at = Column(
+        DateTime,
+        nullable=True
+    )
+
+    closed_at = Column(
+        DateTime,
+        nullable=True
+    )
+
+    first_review_at = Column(
+        DateTime,
+        nullable=True
+    )
+
     repository = relationship(
         "Repository",
         back_populates="pull_requests"

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class PullRequestResponse(BaseModel):
     id: int
+    repository_id: int
     github_pr_number: int
     title: str
     description: str | None = None
@@ -25,6 +26,8 @@ class PullRequestResponse(BaseModel):
 
     created_at: datetime
     updated_at: datetime
+    merged_at: datetime | None = None
+    closed_at: datetime | None = None
 
     class Config:
         from_attributes = True

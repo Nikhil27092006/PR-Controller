@@ -1,10 +1,18 @@
-import API_BASE_URL from "./api";
+import { apiRequest } from "./api";
 
 export async function getRepositories() {
+  return apiRequest("/repositories/");
+}
 
-    const response = await fetch(
-        `${API_BASE_URL}/repositories`
-    );
+export async function addRepository(owner, name) {
+  return apiRequest("/repositories/", {
+    method: "POST",
+    body: JSON.stringify({ owner, name })
+  });
+}
 
-    return response.json();
+export async function deleteRepository(repositoryId) {
+  return apiRequest(`/repositories/${repositoryId}`, {
+    method: "DELETE"
+  });
 }

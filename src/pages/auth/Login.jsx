@@ -13,11 +13,14 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    await new Promise(r => setTimeout(r, 800))
-    const ok = login(form.email, form.password)
-    setLoading(false)
-    if (ok) navigate('/dashboard')
-    else setError('Invalid credentials. Please try again.')
+    try {
+      await login(form.email, form.password)
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err.message || 'Invalid credentials. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

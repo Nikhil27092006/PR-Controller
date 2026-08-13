@@ -1,29 +1,18 @@
-import React, { createContext, useContext, useState, useCallback } from 'react'
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { getToken, setUnauthorizedHandler } from '../services/api'
+import * as authService from '../services/authService'
+import * as repositoryService from '../services/repositoryService'
 
 const AppContext = createContext(undefined)
 
-const INITIAL_REPOS = [
-  { id: 1, owner: 'facebook', name: 'react', connected: true, status: 'synced', lastSync: '10 min ago', prCount: 18, color: '#61dafb' },
-  { id: 2, owner: 'vercel', name: 'next.js', connected: true, status: 'synced', lastSync: '2 hrs ago', prCount: 34, color: '#000000' },
-  { id: 3, owner: 'tailwindlabs', name: 'tailwindcss', connected: false, status: 'disconnected', lastSync: 'Never', prCount: 0, color: '#38bdf8' },
-  { id: 4, owner: 'fastapi', name: 'fastapi', connected: true, status: 'syncing', lastSync: 'Syncing now...', prCount: 5, color: '#059669' },
-]
-
-const INITIAL_ALERTS = [
-  { id: 1, type: 'critical', message: 'Reviewer Overload: Alex Chen has 5 open critical reviews.', age: '5m ago', read: false },
-  { id: 2, type: 'warning', message: 'Dependency Block: PR #4521 is blocking 3 down-stream deploys.', age: '15m ago', read: false },
-  { id: 3, type: 'info', message: 'Sync complete for Vercel Next.js repository.', age: '2h ago', read: true },
-  { id: 4, type: 'error', message: 'Sync failed: GitHub API rate limits exceeded on tailwindcss.', age: '1d ago', read: true }
-]
+const INITIAL_ALERTS = []
 
 export function AppProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    // Check if user session exists in storage
-    const saved = localStorage.getItem('prflow_user')
-    return saved ? JSON.parse(saved) : null
-  })
-  
-  const [repos, setRepos] = useState(INITIAL_REPOS)
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  const [repos, setRepos] = useState([])
+  const [reposLoading, setReposLoading] = useState(false)
   const [selectedRepoId, setSelectedRepoId] = useState('all')
   const [alerts, setAlerts] = useState(INITIAL_ALERTS)
   const [toasts, setToasts] = useState([])
@@ -37,78 +26,113 @@ export function AppProvider({ children }) {
     }, 4000)
   }, [])
 
-  // Login handler
-  const login = useCallback((email, password) => {
-    if (!email || !password) return false
-    const mockUser = {
-      id: 'usr_1',
-      name: 'Sarah Dev',
-      email,
-      avatar: 'SD',
-      role: 'Engineering Lead'
+  const loadRepositories = useCallback(async () => {
+    setReposLoading(true)
+    try {
+      const data = await repositoryService.getRepositories()
+      setRepos(data)
+    } catch (err) {
+      showToast(err.message || 'Failed to load repositories', 'error')
+    } finally {
+      setReposLoading(false)
     }
-    setUser(mockUser)
-    localStorage.setItem('prflow_user', JSON.stringify(mockUser))
+  }, [showToast])
+
+  // On mount: if a token exists, validate it against /auth/me and
+  // restore the session. This also runs after a hard refresh.
+  useEffect(() => {
+    const token = getToken()
+
+    if (!token) {
+      setAuthLoading(false)
+      return
+    }
+
+    authService
+      .getCurrentUser()
+      .then((currentUser) => {
+        setUser(currentUser)
+      })
+      .catch(() => {
+        setUser(null)
+      })
+      .finally(() => {
+        setAuthLoading(false)
+      })
+  }, [])
+
+  // Load repositories once we know who's logged in.
+  useEffect(() => {
+    if (user) {
+      loadRepositories()
+    } else {
+      setRepos([])
+    }
+  }, [user, loadRepositories])
+
+  // If any API call gets a 401 (expired/invalid token), log the
+  // user out cleanly instead of leaving the UI in a broken state.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null)
+      showToast('Your session expired. Please log in again.', 'warning')
+    })
+  }, [showToast])
+
+  // Login handler — throws on failure so the calling page can show
+  // its own error message.
+  const login = useCallback(async (email, password) => {
+    const loggedInUser = await authService.login(email, password)
+    setUser(loggedInUser)
     showToast('Successfully authenticated!', 'success')
-    return true
+    return loggedInUser
+  }, [showToast])
+
+  // Register handler — throws on failure.
+  const register = useCallback(async (username, email, password) => {
+    const newUser = await authService.register(username, email, password)
+    setUser(newUser)
+    showToast('Account created!', 'success')
+    return newUser
   }, [showToast])
 
   // Logout handler
   const logout = useCallback(() => {
+    authService.logout()
     setUser(null)
-    localStorage.removeItem('prflow_user')
+    setRepos([])
     showToast('Logged out successfully.', 'info')
   }, [showToast])
 
-  // Connect Repository
-  const connectRepo = useCallback((id) => {
-    setRepos((prev) =>
-      prev.map((repo) => {
-        if (repo.id === id) {
-          showToast(`Connecting ${repo.owner}/${repo.name}...`, 'info')
-          return { ...repo, connected: true, status: 'syncing', lastSync: 'Syncing...' }
-        }
-        return repo
-      })
-    )
-    
-    // Simulate sync completion
-    setTimeout(() => {
-      setRepos((prev) =>
-        prev.map((repo) => {
-          if (repo.id === id) {
-            showToast(`Synchronized repository ${repo.owner}/${repo.name}`, 'success')
-            // Add a mock sync alert
-            setAlerts(prevAlerts => [
-              {
-                id: Date.now(),
-                type: 'info',
-                message: `Connection sync complete for ${repo.owner}/${repo.name}`,
-                age: 'Just now',
-                read: false
-              },
-              ...prevAlerts
-            ])
-            return { ...repo, status: 'synced', lastSync: 'Just now', prCount: Math.floor(Math.random() * 20) + 5 }
-          }
-          return repo
-        })
-      )
-    }, 3000)
+  // Add repository (real backend call, syncs immediately server-side)
+  const addRepository = useCallback(async (owner, name) => {
+    showToast(`Connecting ${owner}/${name}...`, 'info')
+    try {
+      const newRepo = await repositoryService.addRepository(owner, name)
+      setRepos((prev) => [...prev, newRepo])
+      showToast(`Connected ${owner}/${name}`, 'success')
+      return newRepo
+    } catch (err) {
+      showToast(err.message || `Failed to connect ${owner}/${name}`, 'error')
+      throw err
+    }
   }, [showToast])
 
-  // Disconnect Repository
-  const disconnectRepo = useCallback((id) => {
-    setRepos((prev) =>
-      prev.map((repo) => {
-        if (repo.id === id) {
-          showToast(`Disconnected ${repo.owner}/${repo.name}`, 'warning')
-          return { ...repo, connected: false, status: 'disconnected', lastSync: 'Never', prCount: 0 }
-        }
-        return repo
-      })
-    )
-  }, [showToast])
+  // Remove repository
+  const removeRepository = useCallback(async (id) => {
+    const repo = repos.find((r) => r.id === id)
+    try {
+      await repositoryService.deleteRepository(id)
+      setRepos((prev) => prev.filter((r) => r.id !== id))
+      showToast(
+        repo ? `Removed ${repo.owner}/${repo.name}` : 'Repository removed',
+        'warning'
+      )
+    } catch (err) {
+      showToast(err.message || 'Failed to remove repository', 'error')
+      throw err
+    }
+  }, [repos, showToast])
 
   // Mark alerts as read
   const markAlertRead = useCallback((id) => {
@@ -127,15 +151,19 @@ export function AppProvider({ children }) {
     <AppContext.Provider
       value={{
         user,
+        authLoading,
         repos,
+        reposLoading,
         alerts,
         toasts,
         selectedRepoId,
         setSelectedRepoId,
         login,
+        register,
         logout,
-        connectRepo,
-        disconnectRepo,
+        addRepository,
+        removeRepository,
+        loadRepositories,
         markAlertRead,
         clearAllAlerts,
         showToast

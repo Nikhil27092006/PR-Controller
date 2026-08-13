@@ -1,10 +1,5 @@
-import API_BASE_URL from "./api";
+import { apiRequest } from "./api";
 
 export async function getReviewers() {
-
-    const response = await fetch(
-        `${API_BASE_URL}/reviewers`
-    );
-
-    return response.json();
+  return apiRequest("/reviewers/");
 }

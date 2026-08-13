@@ -1,98 +1,77 @@
-
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
 import DashboardHeader from '../../components/shared/DashboardHeader'
 import DataTable from '../../components/shared/DataTable'
-import { MOCK_PRS } from '../../services/mockData'
+import { getPRs } from '../../services/prService'
 import { useApp } from '../../store/AppContext'
-import React,{ useEffect, useState }
-from "react";
-
-import {
-  getPRs
-}
-from "../../services/prService";
-
-
 
 const PRIORITY_COLORS = { Critical: '#fbbf24', High: '#60a5fa', Medium: '#a855f7', Low: '#34d399' }
-const STATUS_COLORS   = { Blocked: '#f87171', Reviewing: '#fbbf24', 'In Progress': '#60a5fa', Ready: '#34d399', Merged: '#8b5cf6' }
-const CI_ICONS        = { success: '✓', failed: '✗', pending: '⟳' }
-const CI_COLORS       = { success: '#34d399', failed: '#f87171', pending: '#fbbf24' }
+const STATUS_COLORS   = { blocked: '#f87171', open: '#60a5fa', merged: '#8b5cf6', closed: '#94a3b8' }
 
+// Maps the backend PullRequestResponse shape onto the fields this
+// page's table/columns expect. Some fields (branch name, CI status)
+// aren't tracked by the backend yet, so they're shown as "—" rather
+// than invented.
+function adaptPR(pr, repoNameById) {
+  const ageDays = Math.floor(
+    (Date.now() - new Date(pr.created_at).getTime()) / (1000 * 60 * 60 * 24)
+  )
+
+  return {
+    id: pr.id,
+    prNumber: pr.github_pr_number,
+    title: pr.title,
+    branch: '—',
+    repo: repoNameById[pr.repository_id] || `repo #${pr.repository_id}`,
+    author: pr.author || 'Unknown',
+    avatar: (pr.author || '?').slice(0, 2).toUpperCase(),
+    priority: pr.priority_level,
+    priorityScore: pr.priority_score,
+    status: pr.status,
+    age: ageDays === 0 ? 'Today' : `${ageDays}d`,
+    reviewCount: pr.review_count,
+    ciStatus: pr.failing_checks ? 'failed' : 'success'
+  }
+}
+
+const CI_ICONS  = { success: '✓', failed: '✗', pending: '⟳' }
+const CI_COLORS = { success: '#34d399', failed: '#f87171', pending: '#fbbf24' }
 
 export default function PullRequests() {
-  const navigate = useNavigate()
-  const { selectedRepoId, repos: contextRepos } = useApp()
+  const { selectedRepoId, repos } = useApp()
+
+  const [rawPRs, setRawPRs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
   const [priorityFilter, setPriorityFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
   const [repoFilter, setRepoFilter] = useState('All')
 
-    const [prs, setPRs] =
-    useState([]);
+  const activeRepo = selectedRepoId !== 'all'
+    ? repos.find(r => r.id === Number(selectedRepoId))
+    : null
 
   useEffect(() => {
+    setLoading(true)
+    setError(null)
 
-    getPRs()
-      .then(setPRs);
+    getPRs(activeRepo ? activeRepo.id : undefined)
+      .then(setRawPRs)
+      .catch(err => setError(err.message || 'Failed to load pull requests'))
+      .finally(() => setLoading(false))
+  }, [activeRepo])
 
-  }, []);
+  const repoNameById = Object.fromEntries(
+    repos.map(r => [r.id, `${r.owner}/${r.name}`])
+  )
 
-  return (
+  const prs = rawPRs.map(pr => adaptPR(pr, repoNameById))
 
-    <table>
-
-      <thead>
-
-        <tr>
-
-          <th>Title</th>
-
-          <th>Priority</th>
-
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-      {
-        prs.map(pr => (
-
-          <tr key={pr.id}>
-
-            <td>{pr.title}</td>
-
-            <td>
-              {pr.priority_level}
-            </td>
-
-          </tr>
-
-        ))
-      }
-
-      </tbody>
-
-    </table>
-
-  );
-
-  // Derive active repository name from context
-  const activeRepo = selectedRepoId !== 'all'
-    ? contextRepos.find(r => r.id === selectedRepoId)
-    : null
-  const activeRepoName = activeRepo ? `${activeRepo.owner}/${activeRepo.name}` : null
-
-  // Base data scoped to selected repo
-  const scopedPRs = activeRepoName
-    ? MOCK_PRS.filter(pr => pr.repo === activeRepoName)
-    : MOCK_PRS
-
-  const repoOptions = ['All', ...new Set(MOCK_PRS.map(p => p.repo))]
+  const repoOptions = ['All', ...new Set(prs.map(p => p.repo))]
   const priorities  = ['All', 'Critical', 'High', 'Medium', 'Low']
-  const statuses    = ['All', 'Blocked', 'Reviewing', 'In Progress', 'Ready', 'Merged']
+  const statuses    = ['All', 'open', 'blocked', 'merged', 'closed']
 
-  const filteredPRs = scopedPRs.filter(pr => {
+  const filteredPRs = prs.filter(pr => {
     if (priorityFilter !== 'All' && pr.priority !== priorityFilter) return false
     if (statusFilter !== 'All' && pr.status !== statusFilter) return false
     if (repoFilter !== 'All' && pr.repo !== repoFilter) return false
@@ -101,8 +80,8 @@ export default function PullRequests() {
 
   const columns = [
     {
-      key: 'id', label: 'PR #', sortable: true, width: 70,
-      render: (row) => <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--blue-300)', fontSize: '0.8125rem' }}>#{row.id}</span>
+      key: 'prNumber', label: 'PR #', sortable: true, width: 70,
+      render: (row) => <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--blue-300)', fontSize: '0.8125rem' }}>#{row.prNumber}</span>
     },
     {
       key: 'title', label: 'Title', sortable: true,
@@ -167,8 +146,8 @@ export default function PullRequests() {
     </div>
   )
 
-  const subtitle = activeRepoName
-    ? `${filteredPRs.length} pull requests in ${activeRepoName}`
+  const subtitle = activeRepo
+    ? `${filteredPRs.length} pull requests in ${activeRepo.owner}/${activeRepo.name}`
     : `${filteredPRs.length} pull requests across all repositories`
 
   return (
@@ -178,17 +157,19 @@ export default function PullRequests() {
         <DataTable
           columns={columns}
           data={filteredPRs}
+          loading={loading}
+          error={error}
           searchKey="title"
-          searchPlaceholder="Search PR titles or branches..."
+          searchPlaceholder="Search PR titles..."
           filterComponent={FilterBar}
           pageSize={8}
           emptyMessage="No pull requests match the current filters."
         />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1.5rem' }}>
-          {[{ label: 'Critical+High PRs', count: filteredPRs.filter(p => ['Critical','High'].includes(p.priority)).length, color: '#fbbf24' },
-            { label: 'Blocked PRs', count: filteredPRs.filter(p => p.status === 'Blocked').length, color: '#f87171' },
-            { label: 'Merged this sprint', count: filteredPRs.filter(p => p.status === 'Merged').length, color: '#34d399' }
+          {[{ label: 'Critical+High PRs', count: filteredPRs.filter(p => ['Critical', 'High'].includes(p.priority)).length, color: '#fbbf24' },
+            { label: 'Blocked PRs', count: filteredPRs.filter(p => p.status === 'blocked').length, color: '#f87171' },
+            { label: 'Merged this sprint', count: filteredPRs.filter(p => p.status === 'merged').length, color: '#34d399' }
           ].map((s, i) => (
             <div key={i} className="glass-md" style={{ borderRadius: 10, padding: '0.875rem', borderColor: `${s.color}25` }}>
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 700, color: s.color }}>{s.count}</div>

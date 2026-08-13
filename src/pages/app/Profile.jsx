@@ -12,9 +12,9 @@ const AUDIT_LOGS = [
 export default function Profile() {
   const { user, showToast } = useApp()
   const [profile, setProfile] = useState({
-    name: user?.name || 'Sarah Dev',
-    email: user?.email || 'sarah.dev@company.com',
-    role: user?.role || 'Engineering Lead',
+    name: user?.username || '',
+    email: user?.email || '',
+    role: '',
     githubUsername: 'sarahdev-code',
     receiveActivityAlerts: true,
   })
@@ -70,7 +70,7 @@ export default function Profile() {
             {/* Profile Card */}
             <div style={{ ...cardStyle, textAlign: 'center', padding: '2rem 1.75rem' }}>
               <div className="profile-avatar-ring" style={{ margin: '0 auto 1.25rem' }}>
-                {user?.avatar || 'SD'}
+                {(user?.username || '??').slice(0, 2).toUpperCase()}
               </div>
               <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.125rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-100)', marginBottom: '0.2rem' }}>
                 {profile.name}

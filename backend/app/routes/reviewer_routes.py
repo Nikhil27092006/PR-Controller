@@ -1,28 +1,56 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from app.database.session import SessionLocal
-from app.models.reviewer import Reviewer
-from app.services.reviewer_service import ReviewerService
+from app.database.session import get_db
+from app.models.user import User
+from app.schemas.repository_schema import (
+    RepositoryCreate,
+    RepositoryResponse
+)
+from app.services.repository_service import RepositoryService
+from app.services.auth_service import get_current_user
 
 router = APIRouter(
-    prefix="/reviewers",
-    tags=["Reviewers"]
+    prefix="/repositories",
+    tags=["Repositories"]
 )
 
-service = ReviewerService()
+service = RepositoryService()
 
 
-@router.get("/")
-def reviewer_analytics():
+@router.get("/", response_model=list[RepositoryResponse])
+def list_repositories(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
 
-    db = SessionLocal()
+    return service.get_repositories(db, current_user)
 
-    try:
 
-        reviewers = db.query(Reviewer).all()
+@router.post("/", response_model=RepositoryResponse)
+def add_repository(
+    repo_in: RepositoryCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
 
-        return service.analyze_reviewers(reviewers)
+    return service.add_repository(
+        db,
+        current_user,
+        repo_in.owner,
+        repo_in.name
+    )
 
-    finally:
 
-        db.close()
+@router.delete("/{repository_id}")
+def delete_repository(
+    repository_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    return service.delete_repository(
+        db,
+        current_user,
+        repository_id
+    )

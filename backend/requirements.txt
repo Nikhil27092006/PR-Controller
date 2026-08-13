@@ -1,0 +1,48 @@
+# Main backend framework. Used to create REST APIs such as:
+#   GET /prs, GET /reviewers, GET /dependencies
+fastapi
+
+# ASGI server used to run FastAPI.
+#   uvicorn app.main:app --reload
+uvicorn[standard]
+
+# ORM (Object Relational Mapper). Used for PullRequest, Reviewer,
+# Dependency, Repository, and User tables.
+sqlalchemy
+
+# PostgreSQL database driver. Connects SQLAlchemy to PostgreSQL.
+psycopg2-binary
+
+# Data validation library. Validates API requests and responses
+# (e.g. PRResponse, ReviewerResponse).
+pydantic
+
+# Loads configuration from environment variables (DB_CONNECTION,
+# GITHUB_TOKEN, SECRET_KEY, etc).
+pydantic-settings
+
+# Reads .env file automatically. Keeps secrets outside source code.
+python-dotenv
+
+# Sends HTTP requests. Used to communicate with the GitHub REST API
+# (fetch pull requests, repositories, labels).
+requests
+
+# Graph analysis library. Used to build and analyze the PR
+# dependency graph (e.g. PR15 -> PR20, PR15 -> PR25).
+networkx
+
+# Background job scheduler. Runs the automatic sync job on an
+# interval (fetch GitHub data, update DB, recalculate priorities).
+apscheduler
+
+# Advanced date/time calculations. Used for PR age, review time,
+# and merge time analysis.
+python-dateutil
+
+# Password hashing for user accounts.
+passlib[bcrypt]
+bcrypt
+
+# JWT creation and validation for authentication.
+python-jose[cryptography]
