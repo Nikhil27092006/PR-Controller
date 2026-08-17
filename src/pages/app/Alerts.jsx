@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import DashboardHeader from '../../components/shared/DashboardHeader'
 import { useApp } from '../../store/AppContext'
@@ -108,17 +109,16 @@ export default function Alerts() {
               <option value="critical">Critical Only</option>
               <option value="warning">Warnings Only</option>
               <option value="info">Info Only</option>
-              <option value="error">Errors Only</option>
             </select>
           </div>
 
-          {alerts.length > 0 && (
+          {alerts.some(a => !a.read) && (
             <button
               onClick={clearAllAlerts}
               className="btn btn-ghost"
               style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.25)', fontSize: '0.75rem' }}
             >
-              Clear All Alerts
+              Mark All as Read
             </button>
           )}
         </div>

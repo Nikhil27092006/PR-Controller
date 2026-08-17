@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ReviewerResponse(BaseModel):
@@ -20,3 +20,11 @@ class ReviewerResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CapacityUpdateRequest(BaseModel):
+    capacity: int = Field(
+        ge=1,
+        le=50,
+        description="Max concurrent PR reviews this reviewer can comfortably handle"
+    )

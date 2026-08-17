@@ -1,7 +1,5 @@
-import React, {
-  useRef, useEffect, useState, useCallback
-} from 'react'
-import { preloadFrames, getFrameIndex, renderFrame } from '../lib/frameScrubber'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
+import { preloadFrames, getFrameIndex, renderFrame, renderFrameInterpolated, getCachedFrames } from '../lib/frameScrubber'
 
 const TOTAL_FRAMES = 240
 const BASE_PATH    = '/frames/frame_'
@@ -14,7 +12,7 @@ const EXT          = 'jpg'
  */
 export default function FrameCanvas({ onProgress, onLoaded, onLoadProgress }) {
   const canvasRef   = useRef(null)
-  const framesRef   = useRef([])
+  const framesRef   = useRef(getCachedFrames() || [])
   const rafRef      = useRef(null)
   const currentIdx  = useRef(0)
   const targetIdx   = useRef(0)
@@ -38,7 +36,6 @@ export default function FrameCanvas({ onProgress, onLoaded, onLoadProgress }) {
   /* ── Track mouse positions ───────────────────── */
   useEffect(() => {
     const handleMouseMove = (e) => {
-      // Normalize values between -0.5 and 0.5 relative to viewport center
       mouseX.current = (e.clientX / window.innerWidth) - 0.5
       mouseY.current = (e.clientY / window.innerHeight) - 0.5
     }
@@ -55,38 +52,75 @@ export default function FrameCanvas({ onProgress, onLoaded, onLoadProgress }) {
     c.style.width  = `${window.innerWidth}px`
     c.style.height = `${window.innerHeight}px`
     
-    // Re-draw current frame after resize
     const frames = framesRef.current
-    if (frames.length) {
+    if (frames && frames.length) {
       const idx = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(currentIdx.current)))
-      const img = frames[idx]
-      if (img) renderFrame(c, img)
+      const img = frames[idx] || frames[0]
+      if (img && img.complete) renderFrame(c, img)
     }
   }, [])
 
-  /* ── Preload all frames (exactly once) ───────── */
+  /* ── Preload frames ────────────────────────────────────────── */
   useEffect(() => {
-    preloadFrames(TOTAL_FRAMES, BASE_PATH, EXT, (pct) => {
-      setLoadPct(pct)
-      if (onLoadProgressRef.current) onLoadProgressRef.current(pct)
-    }).then((images) => {
-      framesRef.current = images
+    let cancelled = false
+    const cached = getCachedFrames()
+    if (cached && cached.length === TOTAL_FRAMES) {
+      framesRef.current = cached
+      const c = canvasRef.current
+      if (c && cached[0] && cached[0].complete) {
+        renderFrame(c, cached[0])
+      }
       if (onLoadedRef.current) onLoadedRef.current()
-      
-      // Draw first frame immediately
-      const img = images[0]
-      if (img && canvasRef.current) renderFrame(canvasRef.current, img)
+      return
+    }
+
+    console.log('Starting frame preload...')
+    const images = new Array(TOTAL_FRAMES)
+    framesRef.current = images
+
+    preloadFrames(
+      TOTAL_FRAMES, BASE_PATH, EXT,
+      (pct) => {
+        setLoadPct(pct)
+        if (onLoadProgressRef.current) onLoadProgressRef.current(pct)
+      },
+      // onFirstFrame: fired once frame 0 loads — immediately paint it to canvas
+      () => {
+        if (cancelled) return
+        const c = canvasRef.current
+        const img0 = framesRef.current[0]
+        if (c && img0 && img0.complete) {
+          renderFrame(c, img0)
+        }
+      },
+      images  // pass the pre-allocated array so frameScrubber populates it in-place
+    ).then((loadedImages) => {
+      if (cancelled) return
+      console.log('All frames preloaded:', loadedImages.length)
+      framesRef.current = loadedImages
+      const c = canvasRef.current
+      if (c && loadedImages[0] && loadedImages[0].complete) {
+        renderFrame(c, loadedImages[0])
+      }
+      if (onLoadedRef.current) onLoadedRef.current()
+    }).catch((err) => {
+      if (cancelled) return
+      console.warn('Frame preload warning:', err)
+      if (onLoadedRef.current) onLoadedRef.current()
     })
+    return () => { cancelled = true }
   }, [])
 
   /* ── Scroll handler ─────────────────────────── */
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY
-      const maxScroll = document.body.scrollHeight - window.innerHeight
-      const progress  = maxScroll > 0 ? Math.min(scrollTop / maxScroll, 1) : 0
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight)
+      const progress  = Math.min(Math.max(scrollTop / maxScroll, 0), 1)
 
-      targetIdx.current = getFrameIndex(progress, TOTAL_FRAMES)
+      // Continuous target frame calculation across all 240 frames
+      targetIdx.current = progress * (TOTAL_FRAMES - 1)
+
       if (onProgressRef.current) onProgressRef.current(progress)
     }
 
@@ -95,31 +129,43 @@ export default function FrameCanvas({ onProgress, onLoaded, onLoadProgress }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  /* ── rAF render loop — frame scrubbing & idle parallax ── */
+  /* ── rAF render loop — ultra-smooth frame scrubbing & idle parallax ── */
   useEffect(() => {
     const loop = () => {
       rafRef.current = requestAnimationFrame(loop)
       const frames = framesRef.current
-      if (!canvasRef.current) return
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
 
-      // 1. Frame Rendering (Inertia-driven scrolling)
+      // 1. Ultra-smooth Sub-frame Interpolated Frame Rendering
       if (frames.length) {
         const target = targetIdx.current
         const current = currentIdx.current
         const diff = target - current
 
-        if (Math.abs(diff) >= 0.05) {
-          const ease = 0.09 // Buttery-smooth scrubbing inertia
-          currentIdx.current = current + diff * ease
-          const idxToDraw = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(currentIdx.current)))
-          const img = frames[idxToDraw]
-          if (img?.complete) renderFrame(canvasRef.current, img)
-        } else if (currentIdx.current !== target) {
+        // Silky lerp — 0.10 gives buttery-smooth deceleration
+        if (Math.abs(diff) > 0.001) {
+          currentIdx.current = current + diff * 0.10
+        } else {
           currentIdx.current = target
-          const img = frames[target]
-          if (img?.complete) renderFrame(canvasRef.current, img)
+        }
+
+        const floatIdx = Math.max(0, Math.min(TOTAL_FRAMES - 1, currentIdx.current))
+        const floorIdx = Math.floor(floatIdx)
+        const ceilIdx  = Math.min(TOTAL_FRAMES - 1, floorIdx + 1)
+        const fraction = floatIdx - floorIdx
+
+        const imgA = frames[floorIdx]
+        const imgB = frames[ceilIdx]
+
+        // Render even if only imgA is available (during partial load)
+        if (imgA?.complete) {
+          renderFrameInterpolated(canvas, imgA, imgB, fraction)
         }
       }
+      // No animated fallback gradient — canvas background CSS handles dark bg
 
       // 2. Parallax and Idle Motion (Active when user stops scrolling)
       const mEase = 0.12 // Snappier responsiveness to mouse moves
@@ -136,7 +182,7 @@ export default function FrameCanvas({ onProgress, onLoaded, onLoadProgress }) {
       const finalY = curMouseY.current * 70 + breatheY * 50
       const rotateDeg = finalX * 0.06 // More pronounced tilt
 
-      canvasRef.current.style.transform = `scale(1.12) translate3d(${finalX}px, ${finalY}px, 0) rotate(${rotateDeg}deg)`
+      canvas.style.transform = `scale(1.12) translate3d(${finalX}px, ${finalY}px, 0) rotate(${rotateDeg}deg)`
     }
 
     rafRef.current = requestAnimationFrame(loop)
@@ -160,7 +206,7 @@ export default function FrameCanvas({ onProgress, onLoaded, onLoadProgress }) {
           width:  '100vw',
           height: '100vh',
           display: 'block',
-          background: '#020407',
+          background: 'linear-gradient(135deg, #020407 0%, #040810 50%, #070d1c 100%)',
           transition: 'none',
           willChange: 'transform',
         }}

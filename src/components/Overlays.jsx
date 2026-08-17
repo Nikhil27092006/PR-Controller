@@ -36,12 +36,47 @@ function Reveal({ children, delay = 0, dir = 'up', className = '' }) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setVisible(true); obs.disconnect() }
-    }, { threshold: 0.15 })
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [])
+    // Fail-safe: if IntersectionObserver never fires (e.g. element is
+    // already on-screen at mount, or observer is unsupported), reveal
+    // after a short delay so the page never appears blank.
+    const el = ref.current
+    if (!el) return
+
+    // If the element is already in the viewport on first paint, reveal
+    // immediately — otherwise users on a non-scrolling visit see a
+    // black screen with no content.
+    const rect = el.getBoundingClientRect()
+    const alreadyVisible = rect.top < window.innerHeight && rect.bottom > 0
+    if (alreadyVisible) {
+      setVisible(true)
+      return
+    }
+
+    let timeoutId
+    if (typeof IntersectionObserver === 'undefined') {
+      timeoutId = setTimeout(() => setVisible(true), delay + 800)
+      return () => clearTimeout(timeoutId)
+    }
+
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) { setVisible(true); obs.disconnect() }
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -10% 0px' }
+    )
+    obs.observe(el)
+
+    // Hard fallback: if for any reason the observer never fires
+    // (off-screen content the user never scrolls to, or a browser bug),
+    // make sure content still appears after 2.5s so nothing is invisible
+    // permanently.
+    timeoutId = setTimeout(() => setVisible(true), 2500)
+
+    return () => {
+      obs.disconnect()
+      clearTimeout(timeoutId)
+    }
+  }, [delay])
 
   const transforms = { up: 'translateY(28px)', down: 'translateY(-28px)', left: 'translateX(-28px)', right: 'translateX(28px)' }
 
@@ -53,6 +88,9 @@ function Reveal({ children, delay = 0, dir = 'up', className = '' }) {
         opacity: visible ? 1 : 0,
         transform: visible ? 'none' : (transforms[dir] || transforms.up),
         transition: `opacity 0.75s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.75s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+        // Keep the element laid out — without this, the invisible content
+        // collapses and surrounding flex/grid layouts break.
+        willChange: 'opacity, transform',
       }}
     >
       {children}

@@ -1,201 +1,215 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  MarkerType
+} from 'reactflow'
+import 'reactflow/dist/style.css'
 import DashboardHeader from '../../components/shared/DashboardHeader'
-import { MOCK_DEPENDENCY_NETWORK, MOCK_PRS } from '../../services/mockData'
-import { useApp } from '../../store/AppContext'
+import { getDependencyGraph } from '../../services/dependencyService'
+
+const STATUS_LABEL = {
+  open: 'Open',
+  blocked: 'Blocked',
+  merged: 'Merged',
+  closed: 'Closed'
+}
+
+// Custom node renderer — a small card matching the app's glass
+// aesthetic instead of reactflow's plain default box.
+function PRNode({ data }) {
+  return (
+    <div
+      style={{
+        padding: '0.625rem 0.875rem',
+        borderRadius: 10,
+        background: 'rgba(20, 22, 30, 0.9)',
+        border: `1.5px solid ${data.color}70`,
+        boxShadow: `0 0 0 1px ${data.color}20, 0 4px 12px rgba(0,0,0,0.3)`,
+        minWidth: 180,
+        fontFamily: 'var(--font-sans, system-ui)'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: data.color, fontWeight: 700 }}>
+          #{data.prNumber}
+        </span>
+        <span
+          className="tag"
+          style={{ fontSize: '0.55rem', padding: '0.05rem 0.35rem', color: data.color, borderColor: `${data.color}40`, background: `${data.color}15` }}
+        >
+          {data.priorityLevel}
+        </span>
+      </div>
+      <div style={{ fontSize: '0.75rem', color: '#e5e7eb', fontWeight: 500, lineHeight: 1.3, marginBottom: '0.3rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+        {data.title}
+      </div>
+      <div style={{ fontSize: '0.65rem', color: '#9ca3af' }}>
+        {STATUS_LABEL[data.status] || data.status}
+      </div>
+    </div>
+  )
+}
+
+const nodeTypes = { prNode: PRNode }
 
 export default function DependencyGraph() {
-  const [selectedNode, setSelectedNode] = useState(null)
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState({ x: 0, y: 0 })
-  const [dragging, setDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const svgRef = useRef(null)
-  const [search, setSearch] = useState('')
-  const { selectedRepoId, repos: contextRepos } = useApp()
+  const [rawGraph, setRawGraph] = useState({ nodes: [], edges: [] })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [selectedNodeId, setSelectedNodeId] = useState(null)
 
-  // Derive active repository name from context
-  const activeRepo = selectedRepoId !== 'all'
-    ? contextRepos.find(r => r.id === selectedRepoId)
-    : null
-  const activeRepoName = activeRepo ? `${activeRepo.owner}/${activeRepo.name}` : null
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
 
-  // Scope PRs to selected repo, then build visible node IDs
-  const scopedPRIds = activeRepoName
-    ? new Set(MOCK_PRS.filter(pr => pr.repo === activeRepoName).map(pr => pr.id))
-    : null
-
-  const allNodes = MOCK_DEPENDENCY_NETWORK.nodes
-  const allLinks = MOCK_DEPENDENCY_NETWORK.links
-
-  const nodes = scopedPRIds
-    ? allNodes.filter(n => scopedPRIds.has(n.id))
-    : allNodes
-  const visibleNodeIds = new Set(nodes.map(n => n.id))
-  const links = allLinks.filter(l => visibleNodeIds.has(l.source) && visibleNodeIds.has(l.target))
-
-  const selectedPR = selectedNode ? MOCK_PRS.find(p => p.id === selectedNode) : null
-
-  const filteredNodes = search ? nodes.filter(n => n.id.includes(search) || n.label.toLowerCase().includes(search.toLowerCase())) : nodes
-
-  const handleMouseDown = useCallback((e) => {
-    if (e.target.tagName === 'circle' || e.target.tagName === 'text') return
-    setDragging(true)
-    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y })
-  }, [pan])
-
-  const handleMouseMove = useCallback((e) => {
-    if (!dragging) return
-    setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
-  }, [dragging, dragStart])
-
-  const handleMouseUp = useCallback(() => setDragging(false), [])
-
-  const handleWheel = useCallback((e) => {
-    e.preventDefault()
-    const delta = e.deltaY > 0 ? 0.9 : 1.1
-    setZoom(z => Math.max(0.4, Math.min(3, z * delta)))
+    getDependencyGraph()
+      .then(setRawGraph)
+      .catch(err => setError(err.message || 'Failed to load dependency graph'))
+      .finally(() => setLoading(false))
   }, [])
 
-  const VW = 1000; const VH = 340
+  const initialNodes = useMemo(
+    () => rawGraph.nodes.map(n => ({
+      id: n.id,
+      position: n.position,
+      type: 'prNode',
+      data: n.data
+    })),
+    [rawGraph.nodes]
+  )
 
-  const subtitle = activeRepoName
-    ? `Blocking relationships in ${activeRepoName}`
-    : 'Interactive PR blocking relationship network'
+  const initialEdges = useMemo(
+    () => rawGraph.edges.map(e => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      animated: e.animated,
+      markerEnd: { type: MarkerType.ArrowClosed, color: 'rgba(255,255,255,0.35)' },
+      style: { stroke: 'rgba(255,255,255,0.25)', strokeWidth: 1.5 }
+    })),
+    [rawGraph.edges]
+  )
+
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+
+  useEffect(() => {
+    setNodes(initialNodes)
+    setEdges(initialEdges)
+  }, [initialNodes, initialEdges, setNodes, setEdges])
+
+  const onNodeClick = useCallback((_event, node) => {
+    setSelectedNodeId(prev => (prev === node.id ? null : node.id))
+  }, [])
+
+  const selectedNode = rawGraph.nodes.find(n => n.id === selectedNodeId)
+
+  const blockingCount = selectedNodeId
+    ? rawGraph.edges.filter(e => e.target === selectedNodeId).length
+    : 0
+
+  const blockedByCount = selectedNodeId
+    ? rawGraph.edges.filter(e => e.source === selectedNodeId).length
+    : 0
+
+  if (loading) {
+    return (
+      <div className="app-page">
+        <DashboardHeader title="Dependency Graph" subtitle="PR blocking relationships across your repositories" />
+        <div className="page-content">
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-40)' }}>Loading graph...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="app-page">
+        <DashboardHeader title="Dependency Graph" subtitle="PR blocking relationships across your repositories" />
+        <div className="page-content">
+          <div style={{ padding: '3rem', textAlign: 'center', color: '#f87171' }}>{error}</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app-page">
-      <DashboardHeader title="Dependency Graph" subtitle={subtitle} />
+      <DashboardHeader title="Dependency Graph" subtitle="PR blocking relationships across your repositories" />
       <div className="page-content">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem' }}>
-          {/* Graph Canvas */}
-          <div className="glass" style={{ borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
-            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-4)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <div className="table-search-wrap" style={{ flex: 1 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" placeholder="Search PR nodes..." value={search} onChange={e => setSearch(e.target.value)} className="table-search-input" aria-label="Search nodes" />
-              </div>
-              <button onClick={() => { setZoom(z => Math.min(3, z * 1.2)) }} className="btn btn-ghost" style={{ padding: '0.375rem 0.75rem' }} aria-label="Zoom in">+</button>
-              <button onClick={() => { setZoom(z => Math.max(0.4, z * 0.8)) }} className="btn btn-ghost" style={{ padding: '0.375rem 0.75rem' }} aria-label="Zoom out">−</button>
-              <button onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }) }} className="btn btn-ghost" style={{ padding: '0.375rem 0.75rem' }} aria-label="Reset view">Reset</button>
-            </div>
-
-            <div
-              style={{ cursor: dragging ? 'grabbing' : 'grab', userSelect: 'none' }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onWheel={handleWheel}
-              aria-label="Dependency network graph. Drag to pan, scroll to zoom, click nodes to inspect."
-            >
-              <svg
-                ref={svgRef}
-                viewBox={`0 0 ${VW} ${VH}`}
-                style={{ width: '100%', height: 340, display: 'block' }}
-                role="img"
+        {rawGraph.nodes.length === 0 ? (
+          <div className="glass" style={{ borderRadius: 14, padding: '3rem', textAlign: 'center', color: 'var(--text-40)' }}>
+            No dependencies detected yet. Dependencies are found automatically when a PR description
+            mentions phrases like "depends on #123" or "blocked by #45".
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem' }}>
+            <div className="glass" style={{ borderRadius: 16, overflow: 'hidden', height: 520 }}>
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onNodeClick={onNodeClick}
+                nodeTypes={nodeTypes}
+                fitView
+                proOptions={{ hideAttribution: true }}
               >
-                <g transform={`translate(${pan.x},${pan.y}) scale(${zoom})`}>
-                  {/* Render links */}
-                  {links.map((link, i) => {
-                    const src = nodes.find(n => n.id === link.source)
-                    const tgt = nodes.find(n => n.id === link.target)
-                    if (!src || !tgt) return null
-                    const isHighlighted = selectedNode === link.source || selectedNode === link.target
-                    return (
-                      <g key={i}>
-                        <line
-                          x1={src.x} y1={src.y} x2={tgt.x} y2={tgt.y}
-                          stroke={isHighlighted ? '#fbbf24' : 'rgba(255,255,255,0.12)'}
-                          strokeWidth={isHighlighted ? 2 : 1}
-                          strokeDasharray={isHighlighted ? '0' : '6 4'}
-                        />
-                        <text x={(src.x + tgt.x) / 2} y={(src.y + tgt.y) / 2 - 5} fill="rgba(255,255,255,0.25)" fontSize="9" textAnchor="middle">blocks</text>
-                      </g>
-                    )
-                  })}
-
-                  {/* Render nodes */}
-                  {nodes.map((node) => {
-                    const isSelected = selectedNode === node.id
-                    const isHighlighted = !search || filteredNodes.find(n => n.id === node.id)
-                    const opacity = isHighlighted ? 1 : 0.25
-                    return (
-                      <g key={node.id} onClick={() => setSelectedNode(isSelected ? null : node.id)} style={{ cursor: 'pointer' }} opacity={opacity}>
-                        <circle
-                          cx={node.x} cy={node.y} r={isSelected ? 28 : 22}
-                          fill={`${node.color}22`}
-                          stroke={node.color}
-                          strokeWidth={isSelected ? 3 : 1.5}
-                          filter={isSelected ? 'url(#glow)' : undefined}
-                        />
-                        <text x={node.x} y={node.y - 1} textAnchor="middle" fill={node.color} fontSize="10" fontWeight="700" fontFamily="var(--font-mono)">#{node.id}</text>
-                        <text x={node.x} y={node.y + 11} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="8">{node.status}</text>
-                      </g>
-                    )
-                  })}
-
-                  <defs>
-                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feGaussianBlur stdDeviation="4" result="blur"/>
-                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                  </defs>
-                </g>
-              </svg>
+                <Background color="rgba(255,255,255,0.06)" gap={20} />
+                <Controls showInteractive={false} />
+                <MiniMap
+                  nodeColor={(n) => n.data?.color || '#94a3b8'}
+                  maskColor="rgba(10,10,15,0.7)"
+                  style={{ background: 'rgba(20,22,30,0.9)' }}
+                />
+              </ReactFlow>
             </div>
 
-            {/* Legend */}
-            <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid var(--border-4)', display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
-              {[['#fbbf24','Critical'],['#60a5fa','High'],['#22d3ee','Medium'],['#34d399','Ready']].map(([c,l]) => (
-                <div key={l} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: 'var(--text-60)' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
-                  {l}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="glass" style={{ borderRadius: 14, padding: '1.25rem' }}>
+                <h3 className="section-title" style={{ marginBottom: '0.875rem' }}>Graph Summary</h3>
+                {[
+                  { label: 'PRs in graph', value: rawGraph.nodes.length },
+                  { label: 'Dependency links', value: rawGraph.edges.length },
+                ].map((s, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: i < 1 ? '1px solid var(--border-4)' : 'none' }}>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--text-60)' }}>{s.label}</span>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-100)', fontFamily: 'var(--font-mono)' }}>{s.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {selectedNode ? (
+                <div className="glass" style={{ borderRadius: 14, padding: '1.25rem', borderColor: `${selectedNode.data.color}30` }}>
+                  <h3 className="section-title" style={{ marginBottom: '0.875rem' }}>PR #{selectedNode.data.prNumber}</h3>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-80)', marginBottom: '0.875rem' }}>{selectedNode.data.title}</p>
+                  <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                    <span className="tag" style={{ color: selectedNode.data.color, borderColor: `${selectedNode.data.color}35`, background: `${selectedNode.data.color}12` }}>
+                      {selectedNode.data.priorityLevel} · {selectedNode.data.priorityScore}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-40)', marginBottom: '1rem' }}>
+                    Blocking {blockedByCount} PR{blockedByCount === 1 ? '' : 's'} · Waiting on {blockingCount} PR{blockingCount === 1 ? '' : 's'}
+                  </div>
+                  <Link to="/prs" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                    View in Pull Requests →
+                  </Link>
                 </div>
-              ))}
-              <div style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-40)' }}>Drag to pan · Scroll to zoom · Click to inspect</div>
+              ) : (
+                <div className="glass" style={{ borderRadius: 14, padding: '1.5rem', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '0.625rem', color: 'var(--text-20)' }}>◈</div>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-40)' }}>Click any node in the graph to inspect its details</p>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Sidebar Detail */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {/* Impact Analysis */}
-            <div className="glass" style={{ borderRadius: 14, padding: '1.25rem' }}>
-              <h3 className="section-title" style={{ marginBottom: '0.875rem' }}>Impact Analysis</h3>
-              {[
-                { label: 'Total PRs in graph', value: nodes.length },
-                { label: 'Total blocking links', value: links.length },
-                { label: 'Critical path depth', value: '4 levels' },
-                { label: 'Est. cascade delay', value: '2.8 days' },
-              ].map((s, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: i < 3 ? '1px solid var(--border-4)' : 'none' }}>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-60)' }}>{s.label}</span>
-                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-100)', fontFamily: 'var(--font-mono)' }}>{s.value}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Node Detail */}
-            {selectedPR ? (
-              <div className="glass" style={{ borderRadius: 14, padding: '1.25rem', borderColor: `${selectedPR.priorityScore >= 85 ? '#fbbf24' : '#3b82f6'}30` }}>
-                <h3 className="section-title" style={{ marginBottom: '0.875rem' }}>PR #{selectedPR.id}</h3>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-80)', marginBottom: '0.875rem' }}>{selectedPR.title}</p>
-                <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                  <span className="tag tag-blue">{selectedPR.repo}</span>
-                  <span className="tag" style={{ color: '#fbbf24', borderColor: '#fbbf2435', background: '#fbbf2412' }}>{selectedPR.priorityScore}</span>
-                </div>
-                <Link to={`/prs/${selectedPR.id}`} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                  View Details →
-                </Link>
-              </div>
-            ) : (
-              <div className="glass" style={{ borderRadius: 14, padding: '1.5rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.625rem', color: 'var(--text-20)' }}>◈</div>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-40)' }}>Click any node in the graph to inspect its details</p>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

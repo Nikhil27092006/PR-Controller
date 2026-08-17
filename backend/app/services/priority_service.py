@@ -16,6 +16,7 @@ class PriorityService:
 
             pr["priority_score"] = analysis["priority_score"]
             pr["priority_level"] = analysis["priority_level"]
+            pr["priority_breakdown"] = analysis["priority_breakdown"]
 
             results.append(pr)
 

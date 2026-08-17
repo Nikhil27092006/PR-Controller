@@ -46,3 +46,7 @@ bcrypt
 
 # JWT creation and validation for authentication.
 python-jose[cryptography]
+
+# Signed cookie session used by starlette SessionMiddleware to carry
+# the GitHub OAuth `state` across the redirect.
+itsdangerous

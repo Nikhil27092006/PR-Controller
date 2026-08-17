@@ -72,6 +72,7 @@ def _extract_label_names(labels):
 
 def calculate_priority(pr_data: dict) -> dict:
     score = 0
+    breakdown = []
 
     created_at = _parse_created_at(pr_data.get("created_at"))
 
@@ -79,42 +80,93 @@ def calculate_priority(pr_data: dict) -> dict:
         age_days = (datetime.utcnow() - created_at).days
 
         if age_days <= 2:
-            score += AGE_0_TO_2_DAYS
+            points = AGE_0_TO_2_DAYS
+            reason = f"PR age: {age_days} day(s) old"
         elif age_days <= 5:
-            score += AGE_3_TO_5_DAYS
+            points = AGE_3_TO_5_DAYS
+            reason = f"PR age: {age_days} days old"
         elif age_days <= 10:
-            score += AGE_6_TO_10_DAYS
+            points = AGE_6_TO_10_DAYS
+            reason = f"PR age: {age_days} days old"
         else:
-            score += AGE_10_PLUS_DAYS
+            points = AGE_10_PLUS_DAYS
+            reason = f"PR age: {age_days} days old (stale)"
+
+        score += points
+        breakdown.append({
+            "factor": "Age",
+            "score": points,
+            "description": reason
+        })
 
     pending_reviews = pr_data.get("pending_reviews", 0)
 
     if pending_reviews == 1:
-        score += PENDING_REVIEW_1
+        points = PENDING_REVIEW_1
     elif pending_reviews == 2:
-        score += PENDING_REVIEW_2
+        points = PENDING_REVIEW_2
     elif pending_reviews >= 3:
-        score += PENDING_REVIEW_3_PLUS
+        points = PENDING_REVIEW_3_PLUS
+    else:
+        points = 0
+
+    if points:
+        score += points
+        breakdown.append({
+            "factor": "Pending Reviews",
+            "score": points,
+            "description": f"{pending_reviews} review(s) still pending"
+        })
 
     if pr_data.get("merge_conflict"):
         score += MERGE_CONFLICT_SCORE
+        breakdown.append({
+            "factor": "Merge Conflict",
+            "score": MERGE_CONFLICT_SCORE,
+            "description": "This PR has a merge conflict with its base branch"
+        })
 
     if pr_data.get("failing_checks"):
         score += FAILING_CI_SCORE
+        breakdown.append({
+            "factor": "Failing Checks",
+            "score": FAILING_CI_SCORE,
+            "description": "CI checks are currently failing"
+        })
 
     if pr_data.get("is_blocking"):
         score += BLOCKING_PR_SCORE
+        breakdown.append({
+            "factor": "Blocking Other PRs",
+            "score": BLOCKING_PR_SCORE,
+            "description": "Other PRs depend on this one merging first"
+        })
 
     labels = _extract_label_names(pr_data.get("labels", []))
 
     if "urgent" in labels:
         score += URGENT_LABEL_SCORE
+        breakdown.append({
+            "factor": "Urgent Label",
+            "score": URGENT_LABEL_SCORE,
+            "description": "Labeled 'urgent'"
+        })
 
     if "bug" in labels:
         score += BUG_LABEL_SCORE
+        breakdown.append({
+            "factor": "Bug Label",
+            "score": BUG_LABEL_SCORE,
+            "description": "Labeled 'bug'"
+        })
 
     if "security" in labels:
         score += SECURITY_LABEL_SCORE
+        breakdown.append({
+            "factor": "Security Label",
+            "score": SECURITY_LABEL_SCORE,
+            "description": "Labeled 'security'"
+        })
 
     if score <= LOW_THRESHOLD:
         level = LOW
@@ -127,5 +179,6 @@ def calculate_priority(pr_data: dict) -> dict:
 
     return {
         "priority_score": score,
-        "priority_level": level
+        "priority_level": level,
+        "priority_breakdown": breakdown
     }

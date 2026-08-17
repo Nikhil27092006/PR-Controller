@@ -5,3 +5,7 @@ export async function getPRs(repositoryId) {
 
   return apiRequest(`/prs${query}`);
 }
+
+export async function getPRDetail(prId) {
+  return apiRequest(`/prs/${prId}`);
+}

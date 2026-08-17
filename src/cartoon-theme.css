@@ -1,0 +1,953 @@
+/* ============================================================
+   PRFlow — App Dashboard: 1:1 match with public page design
+   Same background · Same tokens · Same typography · Same feel
+   ============================================================ */
+
+/* ── App shell ─────────────────────────────────────────────── */
+.app-container,
+.app-main {
+  background: var(--bg-void) !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* Identical ambient radial gradients to the Features/Docs hero */
+.app-main {
+  background-image:
+    radial-gradient(ellipse 60% 40% at 15% -5%, rgba(59, 130, 246, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 10%, rgba(168, 85, 247, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 105%, rgba(34, 211, 238, 0.04) 0%, transparent 50%) !important;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────── */
+.sidebar {
+  background: rgba(4, 8, 16, 0.94) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(32px) saturate(1.6) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(1.6) !important;
+  width: 240px !important;
+  padding: 1.25rem 0.875rem 1rem !important;
+}
+
+/* Logo — identical to Navbar brand */
+.sidebar-logo {
+  font-family: var(--font-heading) !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  color: rgba(255, 255, 255, 0.97) !important;
+  -webkit-text-fill-color: unset !important;
+  background: none !important;
+  background-clip: unset !important;
+}
+
+.nav-logo-mark {
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--cyan-400) 100%) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important;
+  width: 30px !important;
+  height: 30px !important;
+  animation: none !important;
+}
+
+/* Repo dropdown */
+#sidebar-repo-select {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 6px !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  transition: border-color 0.15s ease !important;
+}
+
+#sidebar-repo-select:focus {
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  outline: none !important;
+}
+
+/* Nav items */
+.sidebar-menu {
+  gap: 2px !important;
+}
+
+.sidebar-link {
+  border-radius: 6px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  padding: 0.5rem 0.75rem !important;
+  gap: 0.625rem !important;
+  border: 1px solid transparent !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+  transform: none !important;
+}
+
+.sidebar-link:hover {
+  color: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  transform: none !important;
+}
+
+.sidebar-link.active {
+  color: var(--cyan-400) !important;
+  background: rgba(34, 211, 238, 0.07) !important;
+  border-color: rgba(34, 211, 238, 0.18) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.sidebar-link-icon {
+  display: flex !important;
+  align-items: center !important;
+  transition: none !important;
+}
+
+.sidebar-link:hover .sidebar-link-icon {
+  transform: none !important;
+}
+
+.sidebar-link.active .sidebar-link-icon {
+  filter: none !important;
+}
+
+.sidebar-link.active .sidebar-link-icon svg {
+  animation: none !important;
+}
+
+.sidebar-link-label {
+  font-weight: 500 !important;
+}
+
+.sidebar-link-badge {
+  background: var(--red-400) !important;
+  color: #fff !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  min-width: 17px !important;
+  height: 17px !important;
+  padding: 0 0.3rem !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  animation: none !important;
+  line-height: 17px !important;
+}
+
+/* User card */
+.sidebar-user {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 8px !important;
+  transition: background 0.15s ease !important;
+}
+
+.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar-user-avatar {
+  background: linear-gradient(135deg, var(--blue-500), var(--cyan-400)) !important;
+  border-radius: 7px !important;
+  font-family: var(--font-heading) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  width: 30px !important;
+  height: 30px !important;
+  box-shadow: none !important;
+}
+
+.sidebar-user-name {
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.sidebar-user-role {
+  font-size: 10px !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-family: var(--font-mono) !important;
+}
+
+.sidebar-logout {
+  color: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 6px !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+  transform: none !important;
+}
+
+.sidebar-logout:hover {
+  color: var(--red-400) !important;
+  background: rgba(248, 113, 113, 0.07) !important;
+  transform: none !important;
+}
+
+/* ── Sidebar width fix for main margin ─────────────────────── */
+.app-main {
+  margin-left: 240px !important;
+}
+
+@media (max-width: 1024px) {
+  .app-main {
+    margin-left: 0 !important;
+  }
+}
+
+/* ── Dashboard Header ──────────────────────────────────────── */
+.dashboard-header {
+  background: rgba(2, 4, 7, 0.6) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* Title — same as public page h1 */
+.header-title {
+  font-family: var(--font-heading) !important;
+  font-size: 1.375rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+  color: rgba(255, 255, 255, 0.97) !important;
+  -webkit-text-fill-color: unset !important;
+  background: none !important;
+  background-clip: unset !important;
+}
+
+.header-subtitle {
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.btn-sync {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+  border-radius: 7px !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+  font-size: 0.8125rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.btn-sync:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-sync.is-syncing {
+  color: var(--cyan-400) !important;
+  border-color: rgba(34, 211, 238, 0.22) !important;
+}
+
+.header-search-input {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 7px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.header-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.header-search-input:focus {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.06) !important;
+}
+
+.header-icon-btn {
+  border-radius: 7px !important;
+  transition: all 0.15s ease !important;
+}
+
+.header-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  transform: none !important;
+}
+
+/* ── Page layout ───────────────────────────────────────────── */
+.page-content {
+  padding: 1.5rem 1.625rem 2.5rem !important;
+  gap: 1.125rem !important;
+}
+
+/* ── glass / glass-md — match public page card style ──────── */
+.glass {
+  background: var(--bg-glass) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(20px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+}
+
+.glass-md {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 10px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* ── Stat Cards — identical to Features page StatCard ──────── */
+.stat-card {
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(8, 14, 28, 0.85) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  padding: 1.25rem 1.375rem !important;
+  transition: border-color 0.2s ease !important;
+  backdrop-filter: blur(12px) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  animation: none !important;
+}
+
+/* Radial glow inside each card — same as Features StatCard */
+.stat-card::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 70%) !important;
+  pointer-events: none !important;
+}
+
+.stat-card:nth-child(1)::before {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59, 130, 246, 0.10) 0%, transparent 70%) !important;
+}
+
+.stat-card:nth-child(2)::before {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(251, 191, 36, 0.09) 0%, transparent 70%) !important;
+}
+
+.stat-card:nth-child(3)::before {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(248, 113, 113, 0.09) 0%, transparent 70%) !important;
+}
+
+.stat-card:nth-child(4)::before {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(52, 211, 153, 0.09) 0%, transparent 70%) !important;
+}
+
+.stat-card:nth-child(5)::before {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 211, 238, 0.09) 0%, transparent 70%) !important;
+}
+
+.stat-card:nth-child(6)::before {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(168, 85, 247, 0.09) 0%, transparent 70%) !important;
+}
+
+/* Thin colored top border accent */
+.stat-card::after {
+  display: none !important;
+}
+
+.stat-card:nth-child(1) {
+  border-top-color: rgba(59, 130, 246, 0.28) !important;
+}
+
+.stat-card:nth-child(2) {
+  border-top-color: rgba(251, 191, 36, 0.28) !important;
+}
+
+.stat-card:nth-child(3) {
+  border-top-color: rgba(248, 113, 113, 0.28) !important;
+}
+
+.stat-card:nth-child(4) {
+  border-top-color: rgba(52, 211, 153, 0.28) !important;
+}
+
+.stat-card:nth-child(5) {
+  border-top-color: rgba(34, 211, 238, 0.28) !important;
+}
+
+.stat-card:nth-child(6) {
+  border-top-color: rgba(168, 85, 247, 0.28) !important;
+}
+
+.stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.stat-card-title {
+  font-family: var(--font-mono) !important;
+  font-size: 0.625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  line-height: 1.3 !important;
+}
+
+.stat-card-icon {
+  font-size: 0.875rem !important;
+  opacity: 0.65 !important;
+}
+
+.stat-card-value {
+  font-family: var(--font-heading) !important;
+  font-size: 2rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1 !important;
+}
+
+.stat-card-subtitle {
+  font-family: var(--font-sans) !important;
+  font-size: 0.6875rem !important;
+  color: rgba(255, 255, 255, 0.28) !important;
+  margin-top: 0.375rem !important;
+}
+
+/* ── Dashboard Section Cards — same as Docs module cards ───── */
+.dashboard-section {
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(8, 14, 28, 0.85) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  backdrop-filter: blur(16px) !important;
+  padding: 1.25rem 1.375rem !important;
+  transition: border-color 0.18s ease !important;
+}
+
+.dashboard-section:hover {
+  border-color: rgba(255, 255, 255, 0.11) !important;
+  box-shadow: none !important;
+}
+
+/* Section header — same divider style as Docs H2 */
+.section-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  padding-bottom: 0.875rem !important;
+  margin-bottom: 0.875rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.section-title {
+  font-family: var(--font-heading) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* "View all" link — same as Docs cyan arrow links */
+.section-link {
+  font-family: var(--font-mono) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  color: var(--cyan-400) !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  white-space: nowrap !important;
+}
+
+.section-link:hover {
+  color: var(--cyan-300) !important;
+  transform: none !important;
+}
+
+/* ── PR row cards ──────────────────────────────────────────── */
+.pr-row-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.5rem 0.625rem !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
+}
+
+.pr-row-card:hover {
+  background: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.pr-score-box {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 7px !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 800 !important;
+  font-size: 0.8125rem !important;
+}
+
+.pr-title-line {
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+  font-size: 0.8125rem !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ── Activity rows ─────────────────────────────────────────── */
+.activity-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.75rem !important;
+  padding: 0.5rem 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.activity-row:last-child {
+  border-bottom: none !important;
+}
+
+.activity-row:hover {
+  background: none !important;
+}
+
+.activity-text {
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.activity-time {
+  font-family: var(--font-mono) !important;
+  font-size: 0.6875rem !important;
+  color: rgba(255, 255, 255, 0.28) !important;
+  font-weight: 400 !important;
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* ── Data Table — matches Docs Table component exactly ─────── */
+.datatable-wrap {
+  border-radius: 10px !important;
+  background: rgba(8, 14, 28, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  overflow: hidden !important;
+}
+
+.datatable-toolbar {
+  background: rgba(2, 4, 7, 0.35) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 0.75rem 1.125rem !important;
+}
+
+.datatable-search {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 6px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+}
+
+.datatable-search::placeholder {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.datatable-search:focus {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.06) !important;
+}
+
+/* Table head — same as Docs Table thead */
+.table-thead {
+  background: rgba(2, 4, 7, 0.6) !important;
+}
+
+.table-th {
+  font-family: var(--font-mono) !important;
+  font-weight: 700 !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.08em !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  text-transform: uppercase !important;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.table-tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  transition: background 0.12s ease !important;
+}
+
+.table-tr:last-child {
+  border-bottom: none !important;
+}
+
+.table-tr:hover {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.table-td {
+  font-family: var(--font-sans) !important;
+  font-weight: 400 !important;
+  font-size: 0.875rem !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+/* ── Tags / Badges — identical to Docs Badge component ─────── */
+.tag {
+  border-radius: 5px !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 700 !important;
+  font-size: 0.6875rem !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  padding: 0.2rem 0.5rem !important;
+}
+
+/* ── Pagination ────────────────────────────────────────────── */
+.datatable-pagination {
+  background: rgba(2, 4, 7, 0.25) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 0.625rem 1.125rem !important;
+}
+
+.pagination-info {
+  font-family: var(--font-mono) !important;
+  font-size: 0.6875rem !important;
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.page-btn {
+  min-width: 28px !important;
+  height: 28px !important;
+  border-radius: 5px !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.75rem !important;
+  transition: all 0.12s ease !important;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  transform: none !important;
+}
+
+.page-btn.active {
+  background: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: var(--blue-300) !important;
+}
+
+/* ── Filter selects ────────────────────────────────────────── */
+.filter-select {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 6px !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  transition: border-color 0.15s ease !important;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  box-shadow: none !important;
+}
+
+.filter-select option {
+  background: var(--bg-deep) !important;
+}
+
+/* ── Alerts ────────────────────────────────────────────────── */
+.alerts-tab-group {
+  border-radius: 7px !important;
+  background: rgba(2, 4, 7, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.alerts-tab {
+  border-radius: 5px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  transition: all 0.15s ease !important;
+}
+
+.alerts-tab.active {
+  color: var(--cyan-400) !important;
+  background: rgba(34, 211, 238, 0.07) !important;
+  border-color: rgba(34, 211, 238, 0.18) !important;
+}
+
+.alerts-severity-select {
+  border-radius: 6px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.alerts-severity-select option {
+  background: var(--bg-deep) !important;
+}
+
+.alert-item {
+  border-radius: 8px !important;
+  transition: background 0.15s ease !important;
+}
+
+.alert-item:hover {
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+/* ── Buttons — same as public page CTAs ────────────────────── */
+.btn {
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  transition: all 0.18s ease !important;
+}
+
+.btn:hover {
+  transform: none !important;
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.13) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Primary — matches Features page "Get Started Free" button */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 0 24px rgba(37, 99, 235, 0.35) !important;
+  color: #fff !important;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 36px rgba(37, 99, 235, 0.55) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-icon {
+  border-radius: 7px !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  transition: all 0.15s ease !important;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  transform: none !important;
+}
+
+/* ── Chart wraps ───────────────────────────────────────────── */
+.chart-wrap {
+  border-radius: 10px !important;
+  background: rgba(8, 14, 28, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  transition: border-color 0.18s ease !important;
+}
+
+.chart-wrap:hover {
+  border-color: rgba(255, 255, 255, 0.11) !important;
+  box-shadow: none !important;
+}
+
+.chart-title {
+  font-family: var(--font-heading) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* ── Empty states ──────────────────────────────────────────── */
+.empty-state-icon {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  border-radius: 50% !important;
+  width: 48px !important;
+  height: 48px !important;
+}
+
+.empty-state-title {
+  font-family: var(--font-heading) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.empty-state-desc {
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* ── Toast ─────────────────────────────────────────────────── */
+.toast-item {
+  border-radius: 10px !important;
+  background: rgba(8, 14, 28, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  backdrop-filter: blur(28px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  font-family: var(--font-sans) !important;
+}
+
+.toast-message {
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+/* ── Profile avatar ────────────────────────────────────────── */
+.profile-avatar-ring {
+  background: linear-gradient(135deg, var(--blue-500), var(--cyan-400)) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18), 0 0 28px rgba(59, 130, 246, 0.18) !important;
+  border-radius: 50% !important;
+  animation: none !important;
+}
+
+/* ── Form inputs — match Docs code-block inputs ─────────────── */
+.form-input {
+  border-radius: 7px !important;
+  background: rgba(2, 4, 7, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.form-input:focus {
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.07) !important;
+}
+
+.form-label {
+  font-family: var(--font-mono) !important;
+  font-size: 0.6875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ── Reviewer / dep card misc ──────────────────────────────── */
+.reviewer-avatar {
+  border-radius: 6px !important;
+  font-family: var(--font-heading) !important;
+}
+
+.dep-node {
+  border-radius: 6px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.75rem !important;
+}
+
+/* ── app-page / page-content ───────────────────────────────── */
+.app-page {
+  background: transparent !important;
+}
+
+.page-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Subtle page entrance fade — same feel as GSAP in Features  */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card {
+  animation: page-fade-in 0.4s var(--transition-fast) both;
+}
+
+.dashboard-section {
+  animation: page-fade-in 0.45s var(--transition-fast) both;
+}
+
+.datatable-wrap {
+  animation: page-fade-in 0.45s var(--transition-fast) both;
+}
+
+.chart-wrap {
+  animation: page-fade-in 0.45s var(--transition-fast) both;
+}
+
+.stat-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.stat-card:nth-child(2) {
+  animation-delay: 0.09s;
+}
+
+.stat-card:nth-child(3) {
+  animation-delay: 0.13s;
+}
+
+.stat-card:nth-child(4) {
+  animation-delay: 0.17s;
+}
+
+.stat-card:nth-child(5) {
+  animation-delay: 0.21s;
+}
+
+.stat-card:nth-child(6) {
+  animation-delay: 0.25s;
+}
+
+/* ── Scrollbar — same cyan-blue tint ──────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.28);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}

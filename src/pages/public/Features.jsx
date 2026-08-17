@@ -645,6 +645,15 @@ export default function Features() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      const targets = [eyebrowRef.current, h1Ref.current, subRef.current, ctaRef.current]
+      // Defensive: if any ref is null, ensure refs are populated before running.
+      // Without this, a render race would leave elements at opacity: 0
+      // permanently and the user would see a blank black hero.
+      if (targets.some((t) => !t)) {
+        // Force everything to visible so the page never looks blank.
+        targets.forEach((t) => { if (t) gsap.set(t, { opacity: 1, x: 0, y: 0 }) })
+        return
+      }
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
       tl.fromTo(eyebrowRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6 })
         .fromTo(h1Ref.current, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.3')
@@ -674,25 +683,25 @@ export default function Features() {
         <div id="feat-orb-2" style={{ position: 'absolute', top: '20%', right: '6%', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)', zIndex: 0 }} />
 
         <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto', padding: '0 2rem', zIndex: 1 }}>
-          <div ref={eyebrowRef} style={{ opacity: 0 }}>
+          <div ref={eyebrowRef}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 100, padding: '0.35rem 1rem', fontSize: '0.75rem', color: '#60a5fa', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 8px #3b82f6', animation: 'pulse 2s ease-in-out infinite', display: 'inline-block' }} />
               Product Features
             </span>
           </div>
 
-          <h1 ref={h1Ref} style={{ opacity: 0, fontFamily: 'var(--font-heading)', fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 900, letterSpacing: '-0.05em', color: '#fff', lineHeight: 1.05, margin: '1.5rem 0 1.25rem' }}>
+          <h1 ref={h1Ref} style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 900, letterSpacing: '-0.05em', color: '#fff', lineHeight: 1.05, margin: '1.5rem 0 1.25rem' }}>
             Built for engineering<br />
             <span style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #22d3ee 50%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               teams that ship.
             </span>
           </h1>
 
-          <p ref={subRef} style={{ opacity: 0, fontSize: '1.0625rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 2.5rem' }}>
+          <p ref={subRef} style={{ fontSize: '1.0625rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 2.5rem' }}>
             PRFlow gives you complete visibility into your PR workflow — dependencies, reviewer load, automated priority scoring. Everything your team needs to move faster.
           </p>
 
-          <div ref={ctaRef} style={{ opacity: 0, display: 'flex', gap: '0.875rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div ref={ctaRef} style={{ display: 'flex', gap: '0.875rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/register" style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
               background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',

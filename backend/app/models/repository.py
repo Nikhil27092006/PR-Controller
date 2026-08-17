@@ -5,7 +5,8 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
-    String
+    String,
+    UniqueConstraint
 )
 from sqlalchemy.orm import relationship
 
@@ -23,9 +24,15 @@ class Repository(Base):
         nullable=True
     )
 
+    # GitHub's numeric repo id. NOT globally unique anymore —
+    # multiple users can each have their own row for the same
+    # GitHub repo (one for the owner, one for a collaborator who
+    # also connected the repo). Uniqueness is enforced per-user via
+    # the composite constraint below.
     github_repo_id = Column(
         Integer,
-        unique=True
+        nullable=True,
+        index=True
     )
 
     owner = Column(
@@ -72,4 +79,17 @@ class Repository(Base):
         "PullRequest",
         back_populates="repository",
         cascade="all, delete-orphan"
+    )
+
+    # A repo can only appear once per user. Without this composite
+    # constraint, two users tracking the same GitHub repo would
+    # collide on github_repo_id; with it, each user has their own
+    # row keyed by their own user_id. (user_id is in the constraint
+    # rather than nullable-FK'd away because some legacy rows may
+    # still have user_id=NULL.)
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "github_repo_id",
+            name="uq_repositories_user_github_repo_id",
+        ),
     )

@@ -6,6 +6,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    JSON,
     String,
     Text
 )
@@ -58,6 +59,15 @@ class PullRequest(Base):
     priority_level = Column(
         String(20),
         default="Low"
+    )
+
+    # Itemized list of {factor, score, description} explaining what
+    # contributed to priority_score. Stored at sync time since the
+    # inputs (labels, live GitHub state) aren't otherwise kept
+    # around to recompute this later.
+    priority_breakdown = Column(
+        JSON,
+        nullable=True
     )
 
     review_count = Column(
@@ -127,5 +137,17 @@ class PullRequest(Base):
         "Dependency",
         foreign_keys="Dependency.target_pr_id",
         back_populates="target_pr",
+        cascade="all, delete-orphan"
+    )
+
+    reviewer_assignments = relationship(
+        "PRReviewer",
+        back_populates="pull_request",
+        cascade="all, delete-orphan"
+    )
+
+    reviews = relationship(
+        "PRReview",
+        back_populates="pull_request",
         cascade="all, delete-orphan"
     )

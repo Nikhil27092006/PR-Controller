@@ -1,24 +1,13 @@
-import API_BASE_URL from "./api";
+import { apiRequest } from "./api";
 
-export async function analyzeDependencies(
-    prBody
-) {
+export async function analyzeDependencies(prBody) {
+  return apiRequest("/dependencies/", {
+    method: "POST",
+    body: JSON.stringify({ pr_body: prBody })
+  });
+}
 
-    const response = await fetch(
-        `${API_BASE_URL}/dependencies`,
-        {
-            method: "POST",
-
-            headers: {
-                "Content-Type":
-                "application/json"
-            },
-
-            body: JSON.stringify({
-                pr_body: prBody
-            })
-        }
-    );
-
-    return response.json();
+// Returns { nodes, edges } already shaped for reactflow.
+export async function getDependencyGraph() {
+  return apiRequest("/dependencies/graph");
 }

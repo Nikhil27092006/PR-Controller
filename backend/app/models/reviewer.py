@@ -6,6 +6,7 @@ from sqlalchemy import (
     Integer,
     String
 )
+from sqlalchemy.orm import relationship
 
 from app.database.base import Base
 
@@ -41,6 +42,15 @@ class Reviewer(Base):
         default=0
     )
 
+    # Max number of concurrent PR review assignments this reviewer
+    # is expected to comfortably handle. Used as the denominator for
+    # load % (e.g. 6 assigned / 5 capacity = 120%). Defaults to 5;
+    # adjustable per reviewer later if needed.
+    capacity = Column(
+        Integer,
+        default=5
+    )
+
     last_review_at = Column(
         DateTime,
         nullable=True
@@ -49,4 +59,10 @@ class Reviewer(Base):
     created_at = Column(
         DateTime,
         default=datetime.utcnow
+    )
+
+    pr_assignments = relationship(
+        "PRReviewer",
+        back_populates="reviewer",
+        cascade="all, delete-orphan"
     )

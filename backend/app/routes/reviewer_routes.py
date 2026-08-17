@@ -1,56 +1,71 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.models.user import User
-from app.schemas.repository_schema import (
-    RepositoryCreate,
-    RepositoryResponse
-)
-from app.services.repository_service import RepositoryService
+from app.schemas.reviewer_schema import CapacityUpdateRequest
+from app.services.reviewer_service import ReviewerService
 from app.services.auth_service import get_current_user
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(
-    prefix="/repositories",
-    tags=["Repositories"]
+    prefix="/reviewers",
+    tags=["Reviewers"]
 )
 
-service = RepositoryService()
+service = ReviewerService()
 
 
-@router.get("/", response_model=list[RepositoryResponse])
-def list_repositories(
+@router.get("/")
+def reviewer_analytics(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
 
-    return service.get_repositories(db, current_user)
+    try:
+        return service.get_workload_for_user(db, current_user)
+
+    except SQLAlchemyError:
+        logger.error(
+            "Failed to load reviewer analytics for user_id=%s",
+            current_user.id, exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not load reviewer data right now. Please try again."
+        )
 
 
-@router.post("/", response_model=RepositoryResponse)
-def add_repository(
-    repo_in: RepositoryCreate,
+@router.put("/{reviewer_id}/capacity")
+def update_reviewer_capacity(
+    reviewer_id: int,
+    request: CapacityUpdateRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
 
-    return service.add_repository(
-        db,
-        current_user,
-        repo_in.owner,
-        repo_in.name
-    )
+    try:
+        reviewer = service.update_capacity(
+            db, current_user, reviewer_id, request.capacity
+        )
 
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not update capacity right now. Please try again."
+        )
 
-@router.delete("/{repository_id}")
-def delete_repository(
-    repository_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+    if not reviewer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reviewer not found"
+        )
 
-    return service.delete_repository(
-        db,
-        current_user,
-        repository_id
-    )
+    return {
+        "reviewer_id": reviewer.id,
+        "username": reviewer.username,
+        "capacity": reviewer.capacity
+    }
