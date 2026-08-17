@@ -19,37 +19,40 @@ const STATUS_LABEL = {
   closed: 'Closed'
 }
 
-// Custom node renderer — a small card matching the app's glass
-// aesthetic instead of reactflow's plain default box.
 function PRNode({ data }) {
+  const isCritical = data.priorityLevel === 'Critical'
   return (
     <div
       style={{
-        padding: '0.625rem 0.875rem',
-        borderRadius: 10,
-        background: 'rgba(20, 22, 30, 0.9)',
-        border: `1.5px solid ${data.color}70`,
-        boxShadow: `0 0 0 1px ${data.color}20, 0 4px 12px rgba(0,0,0,0.3)`,
-        minWidth: 180,
-        fontFamily: 'var(--font-sans, system-ui)'
+        padding: '0.75rem 1rem',
+        borderRadius: 12,
+        background: 'rgba(8, 14, 28, 0.95)',
+        border: `1.5px solid ${data.color || '#3b82f6'}80`,
+        boxShadow: `0 0 20px ${data.color || '#3b82f6'}25, 0 8px 24px rgba(0,0,0,0.6)`,
+        minWidth: 200,
+        fontFamily: 'var(--font-sans, system-ui)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: data.color, fontWeight: 700 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 2, background: data.color || '#3b82f6' }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: data.color || 'var(--cyan-400)', fontWeight: 800 }}>
           #{data.prNumber}
         </span>
         <span
           className="tag"
-          style={{ fontSize: '0.55rem', padding: '0.05rem 0.35rem', color: data.color, borderColor: `${data.color}40`, background: `${data.color}15` }}
+          style={{ fontSize: '0.55rem', padding: '0.05rem 0.35rem', color: data.color, borderColor: `${data.color}40`, background: `${data.color}15`, fontWeight: 700 }}
         >
           {data.priorityLevel}
         </span>
       </div>
-      <div style={{ fontSize: '0.75rem', color: '#e5e7eb', fontWeight: 500, lineHeight: 1.3, marginBottom: '0.3rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+      <div style={{ fontSize: '0.8125rem', color: '#fff', fontWeight: 600, lineHeight: 1.3, marginBottom: '0.4rem', maxWidth: 190, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
         {data.title}
       </div>
-      <div style={{ fontSize: '0.65rem', color: '#9ca3af' }}>
-        {STATUS_LABEL[data.status] || data.status}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
+        <span>{STATUS_LABEL[data.status] || data.status}</span>
+        <span>Score: {data.priorityScore || '—'}</span>
       </div>
     </div>
   )
@@ -88,9 +91,9 @@ export default function DependencyGraph() {
       id: e.id,
       source: e.source,
       target: e.target,
-      animated: e.animated,
-      markerEnd: { type: MarkerType.ArrowClosed, color: 'rgba(255,255,255,0.35)' },
-      style: { stroke: 'rgba(255,255,255,0.25)', strokeWidth: 1.5 }
+      animated: true,
+      markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--cyan-400)' },
+      style: { stroke: 'rgba(34, 211, 238, 0.6)', strokeWidth: 2 }
     })),
     [rawGraph.edges]
   )
@@ -120,9 +123,17 @@ export default function DependencyGraph() {
   if (loading) {
     return (
       <div className="app-page">
-        <DashboardHeader title="Dependency Graph" subtitle="PR blocking relationships across your repositories" />
+        <DashboardHeader title="Dependency Graph" subtitle="Neural topological mapping of PR blocking chains" />
         <div className="page-content">
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-40)' }}>Loading graph...</div>
+          <div style={{ padding: '5rem 2rem', textAlign: 'center', color: 'var(--text-40)' }}>
+            <div className="live-pulse-dot" style={{ margin: '0 auto 1.5rem', width: 14, height: 14 }} />
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', color: '#fff', fontWeight: 700, marginBottom: '0.5rem' }}>
+              Calculating Cross-PR Dependency Lattice...
+            </div>
+            <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)' }}>
+              Parsing commit metadata, issue linkage tags, and pull request descriptions.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -131,9 +142,12 @@ export default function DependencyGraph() {
   if (error) {
     return (
       <div className="app-page">
-        <DashboardHeader title="Dependency Graph" subtitle="PR blocking relationships across your repositories" />
+        <DashboardHeader title="Dependency Graph" subtitle="Neural topological mapping of PR blocking chains" />
         <div className="page-content">
-          <div style={{ padding: '3rem', textAlign: 'center', color: '#f87171' }}>{error}</div>
+          <div className="glass" style={{ padding: '3rem', textAlign: 'center', borderRadius: 16 }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem', color: '#f87171' }}>⚠️</div>
+            <p style={{ color: '#fca5a5', fontSize: '0.875rem' }}>{error}</p>
+          </div>
         </div>
       </div>
     )
@@ -141,16 +155,56 @@ export default function DependencyGraph() {
 
   return (
     <div className="app-page">
-      <DashboardHeader title="Dependency Graph" subtitle="PR blocking relationships across your repositories" />
+      <DashboardHeader 
+        title="Dependency Graph" 
+        subtitle="Topological mapping of blocker chains & downstream blast radius" 
+      />
+
       <div className="page-content">
+
+        {/* ── Summary Counters ─── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.875rem', marginBottom: '1.25rem' }}>
+          <div className="glass stat-card" style={{ borderRadius: 10, padding: '1rem', borderColor: 'rgba(59,130,246,0.3)' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800, color: '#3b82f6', lineHeight: 1 }}>
+              {rawGraph.nodes.length}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.35rem', textTransform: 'uppercase' }}>
+              Tracked PR Nodes
+            </div>
+          </div>
+          <div className="glass stat-card" style={{ borderRadius: 10, padding: '1rem', borderColor: 'rgba(248,113,113,0.3)' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800, color: '#f87171', lineHeight: 1 }}>
+              {rawGraph.edges.length}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.35rem', textTransform: 'uppercase' }}>
+              Active Dependency Links
+            </div>
+          </div>
+          <div className="glass stat-card" style={{ borderRadius: 10, padding: '1rem', borderColor: 'rgba(34,211,238,0.3)' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--cyan-400)', lineHeight: 1 }}>
+              {rawGraph.edges.length > 0 ? 'Lattice Active' : 'Autonomous'}
+            </div>
+            <div style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.35rem', textTransform: 'uppercase' }}>
+              Pipeline Flow Status
+            </div>
+          </div>
+        </div>
+
         {rawGraph.nodes.length === 0 ? (
-          <div className="glass" style={{ borderRadius: 14, padding: '3rem', textAlign: 'center', color: 'var(--text-40)' }}>
-            No dependencies detected yet. Dependencies are found automatically when a PR description
-            mentions phrases like "depends on #123" or "blocked by #45".
+          <div className="glass" style={{ borderRadius: 16, padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-40)' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--cyan-400)' }}>◈</div>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.125rem', color: '#fff', fontWeight: 700, marginBottom: '0.5rem' }}>
+              No Cross-PR Dependencies Detected
+            </h3>
+            <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
+              Dependencies are automatically parsed from pull request descriptions when phrases like 
+              <code style={{ color: 'var(--cyan-400)', margin: '0 0.3rem' }}>"depends on #12"</code> or 
+              <code style={{ color: 'var(--cyan-400)', margin: '0 0.3rem' }}>"blocked by #45"</code> are added.
+            </p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem' }}>
-            <div className="glass" style={{ borderRadius: 16, overflow: 'hidden', height: 520 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.25rem' }}>
+            <div className="glass" style={{ borderRadius: 16, overflow: 'hidden', height: 560, border: '1px solid rgba(255,255,255,0.08)' }}>
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -161,56 +215,78 @@ export default function DependencyGraph() {
                 fitView
                 proOptions={{ hideAttribution: true }}
               >
-                <Background color="rgba(255,255,255,0.06)" gap={20} />
+                <Background color="rgba(34,211,238,0.08)" gap={24} size={1.5} />
                 <Controls showInteractive={false} />
                 <MiniMap
-                  nodeColor={(n) => n.data?.color || '#94a3b8'}
-                  maskColor="rgba(10,10,15,0.7)"
-                  style={{ background: 'rgba(20,22,30,0.9)' }}
+                  nodeColor={(n) => n.data?.color || '#3b82f6'}
+                  maskColor="rgba(4,8,16,0.85)"
+                  style={{ background: 'rgba(8,14,28,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
                 />
               </ReactFlow>
             </div>
 
+            {/* Right Inspector Drawer */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="glass" style={{ borderRadius: 14, padding: '1.25rem' }}>
-                <h3 className="section-title" style={{ marginBottom: '0.875rem' }}>Graph Summary</h3>
-                {[
-                  { label: 'PRs in graph', value: rawGraph.nodes.length },
-                  { label: 'Dependency links', value: rawGraph.edges.length },
-                ].map((s, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: i < 1 ? '1px solid var(--border-4)' : 'none' }}>
-                    <span style={{ fontSize: '0.8125rem', color: 'var(--text-60)' }}>{s.label}</span>
-                    <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-100)', fontFamily: 'var(--font-mono)' }}>{s.value}</span>
-                  </div>
-                ))}
-              </div>
-
               {selectedNode ? (
-                <div className="glass" style={{ borderRadius: 14, padding: '1.25rem', borderColor: `${selectedNode.data.color}30` }}>
-                  <h3 className="section-title" style={{ marginBottom: '0.875rem' }}>PR #{selectedNode.data.prNumber}</h3>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-80)', marginBottom: '0.875rem' }}>{selectedNode.data.title}</p>
-                  <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                    <span className="tag" style={{ color: selectedNode.data.color, borderColor: `${selectedNode.data.color}35`, background: `${selectedNode.data.color}12` }}>
-                      {selectedNode.data.priorityLevel} · {selectedNode.data.priorityScore}
-                    </span>
+                <div className="glass dashboard-section" style={{ borderColor: `${selectedNode.data.color}40`, background: 'linear-gradient(135deg, rgba(8,14,28,0.9) 0%, rgba(13,23,46,0.85) 100%)' }}>
+                  <div className="section-header">
+                    <div>
+                      <span className="tag" style={{ color: selectedNode.data.color, borderColor: `${selectedNode.data.color}40`, background: `${selectedNode.data.color}15`, marginBottom: '0.35rem', fontSize: '0.625rem' }}>
+                        {selectedNode.data.priorityLevel} Priority
+                      </span>
+                      <h3 className="section-title">PR #{selectedNode.data.prNumber}</h3>
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-40)', marginBottom: '1rem' }}>
-                    Blocking {blockedByCount} PR{blockedByCount === 1 ? '' : 's'} · Waiting on {blockingCount} PR{blockingCount === 1 ? '' : 's'}
+
+                  <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fff', marginBottom: '1rem', lineHeight: 1.4 }}>
+                    {selectedNode.data.title}
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
+                    <div style={{ padding: '0.625rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+                        Waiting on Upstream
+                      </div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 700, color: blockingCount > 0 ? '#fbbf24' : '#34d399', marginTop: '0.2rem' }}>
+                        {blockingCount > 0 ? `${blockingCount} Blocker PRs` : 'Zero Blockers (Ready)'}
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0.625rem 0.75rem', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+                        Downstream Blast Radius
+                      </div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 700, color: blockedByCount > 0 ? '#f87171' : '#34d399', marginTop: '0.2rem' }}>
+                        {blockedByCount > 0 ? `Blocks ${blockedByCount} dependent PRs` : 'Zero Downstream Impact'}
+                      </div>
+                    </div>
                   </div>
-                  <Link to="/prs" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                    View in Pull Requests →
+
+                  <Link
+                    to={`/prs/${selectedNode.id}`}
+                    className="btn btn-primary"
+                    style={{ width: '100%', justifyContent: 'center', textDecoration: 'none' }}
+                  >
+                    Open Deep Telemetry →
                   </Link>
                 </div>
               ) : (
-                <div className="glass" style={{ borderRadius: 14, padding: '1.5rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.625rem', color: 'var(--text-20)' }}>◈</div>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--text-40)' }}>Click any node in the graph to inspect its details</p>
+                <div className="glass" style={{ borderRadius: 16, padding: '2.5rem 1.5rem', textAlign: 'center', background: 'rgba(8,14,28,0.6)' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--cyan-400)', opacity: 0.6 }}>◈</div>
+                  <h4 style={{ fontFamily: 'var(--font-heading)', color: '#fff', fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                    Topological Node Inspector
+                  </h4>
+                  <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+                    Click any node inside the interactive canvas to inspect blocker paths, priority metrics, and blast radius impact.
+                  </p>
                 </div>
               )}
             </div>
           </div>
         )}
+
       </div>
     </div>
   )
 }
+

@@ -14,7 +14,7 @@ const TABS = [
   },
   {
     id: 'notifications',
-    label: 'Notifications',
+    label: 'Notification Feeds',
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -23,7 +23,7 @@ const TABS = [
   },
   {
     id: 'general',
-    label: 'General',
+    label: 'Pipeline & Sync',
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
@@ -41,19 +41,20 @@ function Toggle({ checked, onChange }) {
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       style={{
-        width: 42, height: 24, borderRadius: 12,
+        width: 44, height: 24, borderRadius: 12,
         background: checked ? 'var(--cyan-400)' : 'rgba(255,255,255,0.1)',
         border: 'none', cursor: 'pointer', position: 'relative',
-        transition: 'background 0.2s ease',
+        transition: 'all 0.2s ease',
         flexShrink: 0,
+        boxShadow: checked ? '0 0 12px rgba(34,211,238,0.4)' : 'none'
       }}
     >
       <span style={{
-        position: 'absolute', top: 3, left: checked ? 21 : 3,
+        position: 'absolute', top: 3, left: checked ? 23 : 3,
         width: 18, height: 18, borderRadius: '50%',
-        background: checked ? 'hsl(220 20% 8%)' : 'rgba(255,255,255,0.4)',
-        transition: 'left 0.2s ease, background 0.2s ease',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+        background: checked ? '#040810' : '#fff',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.5)',
       }} />
     </button>
   )
@@ -62,24 +63,24 @@ function Toggle({ checked, onChange }) {
 function WeightSlider({ label, desc, value, onChange, totalWeight }) {
   const pct = Math.round((value / Math.max(totalWeight, 1)) * 100)
   return (
-    <div style={{ padding: '1.25rem 1.375rem', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+    <div style={{ padding: '1.125rem 1.25rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.625rem' }}>
         <div>
-          <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', marginBottom: '0.2rem' }}>{label}</div>
-          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>{desc}</div>
+          <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#fff', marginBottom: '0.15rem' }}>{label}</div>
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>{desc}</div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '1rem' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 800, color: 'var(--cyan-400)', lineHeight: 1 }}>{value}%</div>
-          <div style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.25)', marginTop: '0.2rem', fontFamily: 'var(--font-mono)' }}>{pct}% of total</div>
+          <div style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.2rem', fontFamily: 'var(--font-mono)' }}>{pct}% relative</div>
         </div>
       </div>
-      <div style={{ position: 'relative', height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, cursor: 'pointer' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${value}%`, background: 'linear-gradient(90deg, rgba(59,130,246,0.7), var(--cyan-400))', borderRadius: 3, transition: 'width 0.1s' }} />
+      <div style={{ position: 'relative', height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3 }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${value}%`, background: 'linear-gradient(90deg, #3b82f6, var(--cyan-400))', borderRadius: 3, boxShadow: '0 0 10px rgba(34,211,238,0.4)' }} />
       </div>
       <input
         type="range" min="0" max="100" value={value}
         onChange={e => onChange(parseInt(e.target.value) || 0)}
-        style={{ width: '100%', marginTop: '-3px', opacity: 0, cursor: 'pointer', height: 12, position: 'relative', zIndex: 2 }}
+        style={{ width: '100%', marginTop: '-4px', opacity: 0, cursor: 'pointer', height: 14, position: 'relative', zIndex: 2 }}
         aria-label={label}
       />
     </div>
@@ -88,10 +89,10 @@ function WeightSlider({ label, desc, value, onChange, totalWeight }) {
 
 function NotifRow({ label, desc, checked, onChange }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', padding: '1.125rem 1.375rem', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', padding: '1.125rem 1.25rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10 }}>
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', marginBottom: '0.2rem' }}>{label}</div>
-        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>{desc}</div>
+        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#fff', marginBottom: '0.15rem' }}>{label}</div>
+        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>{desc}</div>
       </div>
       <Toggle checked={checked} onChange={onChange} />
     </div>
@@ -130,7 +131,7 @@ export default function Settings() {
 
   const handleSave = (e) => {
     e.preventDefault()
-    showToast('Configuration settings updated successfully!', 'success')
+    showToast('Platform telemetry settings updated successfully!', 'success')
   }
 
   const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0)
@@ -139,19 +140,17 @@ export default function Settings() {
   return (
     <div className="app-page">
       <DashboardHeader
-        title="System Settings"
-        subtitle="Tune priority engines, sync profiles, and communication integrations."
+        title="Platform Settings"
+        subtitle="Calibrate priority heuristics, telemetry pipelines, and automated alerts"
       />
 
       <div className="page-content">
-        <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '1.5rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '1.25rem', alignItems: 'start' }}>
 
-          {/* Tab Sidebar */}
-          <nav style={{
-            background: 'rgba(8,14,28,0.6)',
-            border: '1px solid rgba(255,255,255,0.07)',
+          {/* Tab Navigation Sidebar */}
+          <nav className="glass" style={{
             borderRadius: 12,
-            padding: '0.625rem',
+            padding: '0.5rem',
             display: 'flex', flexDirection: 'column', gap: '0.25rem',
           }}>
             {TABS.map(tab => {
@@ -163,15 +162,13 @@ export default function Settings() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.75rem',
                     padding: '0.75rem 1rem', border: 'none', borderRadius: 8, cursor: 'pointer',
-                    background: active ? 'rgba(34,211,238,0.1)' : 'transparent',
-                    color: active ? 'var(--cyan-400)' : 'rgba(255,255,255,0.45)',
-                    fontFamily: 'var(--font-sans)', fontWeight: active ? 600 : 400,
-                    fontSize: '0.875rem', textAlign: 'left',
+                    background: active ? 'rgba(34,211,238,0.12)' : 'transparent',
+                    color: active ? 'var(--cyan-400)' : 'rgba(255,255,255,0.5)',
+                    fontFamily: 'var(--font-sans)', fontWeight: active ? 700 : 500,
+                    fontSize: '0.8125rem', textAlign: 'left',
                     transition: 'all 0.15s ease',
-                    outline: active ? '1px solid rgba(34,211,238,0.2)' : '1px solid transparent',
+                    outline: active ? '1px solid rgba(34,211,238,0.25)' : '1px solid transparent',
                   }}
-                  onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
-                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.45)' }}
                 >
                   {tab.icon}
                   {tab.label}
@@ -180,67 +177,73 @@ export default function Settings() {
             })}
           </nav>
 
-          {/* Panel */}
+          {/* Active Settings Panel */}
           <form onSubmit={handleSave}>
-            <div style={{ background: 'rgba(8,14,28,0.6)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div className="glass dashboard-section" style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
               {activeTab === 'engine' && (
                 <>
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.0625rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'rgba(255,255,255,0.95)', marginBottom: '0.375rem' }}>
-                      Priority Engine Weights
-                    </h2>
-                    <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
-                      Configure how pull requests are scored. Adjust slider weights. &nbsp;
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700, padding: '0.175rem 0.5rem', borderRadius: 5, background: totalOk ? 'rgba(52,211,153,0.12)' : 'rgba(251,191,36,0.12)', color: totalOk ? '#34d399' : '#fbbf24' }}>
-                        Total: {totalWeight}% {totalOk ? '✓' : '— target 100%'}
-                      </span>
-                    </p>
+                  <div className="section-header">
+                    <div>
+                      <h3 className="section-title">Priority Triage Engine Weights</h3>
+                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>
+                        Fine-tune heuristic coefficients that determine automated PR urgency rankings.
+                      </p>
+                    </div>
+                    <span className="glow-pill" style={{ background: totalOk ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)', color: totalOk ? '#34d399' : '#fbbf24', border: `1px solid ${totalOk ? 'rgba(52,211,153,0.3)' : 'rgba(251,191,36,0.3)'}` }}>
+                      Sum: {totalWeight}% {totalOk ? '✓ Target Met' : '⚠️ Must sum to 100%'}
+                    </span>
                   </div>
-                  <WeightSlider label="Dependency Network Depth" desc="Prioritizes PRs that block downstream dependency chains or releases." value={weights.dependencyDepth} onChange={v => handleWeightChange('dependencyDepth', v)} totalWeight={totalWeight} />
-                  <WeightSlider label="Reviewer Workload Balance" desc="Adjusts routing priority based on the review queues of assigned code reviewers." value={weights.reviewerLoad} onChange={v => handleWeightChange('reviewerLoad', v)} totalWeight={totalWeight} />
-                  <WeightSlider label="PR Size (Diff Size Weight)" desc="Gives a boost to smaller, quicker-to-review PRs to reduce WIP queue buildup." value={weights.linesChanged} onChange={v => handleWeightChange('linesChanged', v)} totalWeight={totalWeight} />
-                  <WeightSlider label="CI / CD Run Status" desc="Deprioritizes pull requests with broken, missing, or long-running builds." value={weights.ciStatus} onChange={v => handleWeightChange('ciStatus', v)} totalWeight={totalWeight} />
-                  <WeightSlider label="Pull Request Age Decay" desc="Gradually raises the priority score of older PRs to prevent reviewer abandonment." value={weights.prAge} onChange={v => handleWeightChange('prAge', v)} totalWeight={totalWeight} />
+
+                  <WeightSlider label="Dependency Depth & Blocker Impact" desc="Weights pull requests that unblock other engineers or downstream production releases." value={weights.dependencyDepth} onChange={v => handleWeightChange('dependencyDepth', v)} totalWeight={totalWeight} />
+                  <WeightSlider label="Reviewer Workload Capacity" desc="Prioritizes PRs for engineers with open review bandwidth to prevent queuing." value={weights.reviewerLoad} onChange={v => handleWeightChange('reviewerLoad', v)} totalWeight={totalWeight} />
+                  <WeightSlider label="Diff Size & Complexity Footprint" desc="Boosts small, compact pull requests to maximize continuous integration velocity." value={weights.linesChanged} onChange={v => handleWeightChange('linesChanged', v)} totalWeight={totalWeight} />
+                  <WeightSlider label="CI/CD Build Health Status" desc="Deprioritizes pull requests with failed unit tests or linting errors." value={weights.ciStatus} onChange={v => handleWeightChange('ciStatus', v)} totalWeight={totalWeight} />
+                  <WeightSlider label="Aging & SLA Stale Penalty" desc="Elevates older pull requests to prevent abandonment and technical stagnation." value={weights.prAge} onChange={v => handleWeightChange('prAge', v)} totalWeight={totalWeight} />
                 </>
               )}
 
               {activeTab === 'notifications' && (
                 <>
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.0625rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'rgba(255,255,255,0.95)', marginBottom: '0.375rem' }}>
-                      Notification Channels
-                    </h2>
-                    <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
-                      Manage how PRFlow alerts developers about bottlenecks, review requests, and CI blockers.
-                    </p>
+                  <div className="section-header">
+                    <div>
+                      <h3 className="section-title">Automated Notification Feeds</h3>
+                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>
+                        Configure alerts for blocker incidents, reviewer capacity spikes, and daily digests.
+                      </p>
+                    </div>
                   </div>
-                  <NotifRow label="Daily Digest Email" desc="Send an overview of pending critical PRs every morning at 9am." checked={notifications.emailSummary} onChange={v => setNotifications(p => ({ ...p, emailSummary: v }))} />
-                  <NotifRow label="Reviewer Overload Warnings" desc="Alert when a developer is assigned more than 4 concurrent open PRs." checked={notifications.reviewerTriggers} onChange={v => setNotifications(p => ({ ...p, reviewerTriggers: v }))} />
-                  <NotifRow label="Dependency Blocker Alerts" desc="Notify teams immediately when a high-priority PR becomes blocked." checked={notifications.blockerTriggers} onChange={v => setNotifications(p => ({ ...p, blockerTriggers: v }))} />
 
-                  {/* Slack toggle + conditional webhook input */}
-                  <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', padding: '1.125rem 1.375rem' }}>
+                  <NotifRow label="Executive Daily Digest" desc="Sends an overview of pending critical PRs and SLA risks every morning at 09:00 UTC." checked={notifications.emailSummary} onChange={v => setNotifications(p => ({ ...p, emailSummary: v }))} />
+                  <NotifRow label="Reviewer Overload Warnings" desc="Alerts team leads when an engineer exceeds their max capacity ceiling." checked={notifications.reviewerTriggers} onChange={v => setNotifications(p => ({ ...p, reviewerTriggers: v }))} />
+                  <NotifRow label="Critical Path Blocker Alerts" desc="Immediate high-priority notification when a critical release PR is blocked." checked={notifications.blockerTriggers} onChange={v => setNotifications(p => ({ ...p, blockerTriggers: v }))} />
+
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', padding: '1.125rem 1.25rem' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', marginBottom: '0.2rem' }}>Slack Webhook Alerts</div>
-                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Pipe urgent bottleneck events directly to engineering Slack channels.</div>
+                        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#fff', marginBottom: '0.15rem' }}>Slack & Discord Webhook Alerts</div>
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>Pipe urgent bottleneck telemetry directly into engineering Slack channels.</div>
                       </div>
                       <Toggle checked={notifications.slackAlerts} onChange={v => setNotifications(p => ({ ...p, slackAlerts: v }))} />
                     </div>
                     {notifications.slackAlerts && (
-                      <div style={{ padding: '0 1.375rem 1.125rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', marginTop: '0.875rem' }}>
-                          Slack Incoming Webhook URL
+                      <div style={{ padding: '0 1.25rem 1.125rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                        <label className="form-label" style={{ marginTop: '0.75rem' }}>
+                          Incoming Webhook Endpoint URL
                         </label>
-                        <input
-                          type="text"
-                          value={notifications.slackWebhook}
-                          onChange={e => setNotifications(p => ({ ...p, slackWebhook: e.target.value }))}
-                          className="form-input"
-                          style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem' }}
-                          placeholder="https://hooks.slack.com/services/..."
-                        />
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input
+                            type="text"
+                            value={notifications.slackWebhook}
+                            onChange={e => setNotifications(p => ({ ...p, slackWebhook: e.target.value }))}
+                            className="form-input"
+                            style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}
+                            placeholder="https://hooks.slack.com/services/..."
+                          />
+                          <button type="button" onClick={() => showToast('Dispatched test payload to Slack webhook', 'success')} className="btn btn-ghost" style={{ fontSize: '0.75rem', flexShrink: 0 }}>
+                            Send Test Ping
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -249,68 +252,70 @@ export default function Settings() {
 
               {activeTab === 'general' && (
                 <>
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.0625rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'rgba(255,255,255,0.95)', marginBottom: '0.375rem' }}>
-                      General Platform Settings
-                    </h2>
-                    <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
-                      Configure synchronization intervals and workspace appearance preferences.
-                    </p>
+                  <div className="section-header">
+                    <div>
+                      <h3 className="section-title">Pipeline & Sync Settings</h3>
+                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>
+                        Configure webhook ingestion intervals and visual appearance preferences.
+                      </p>
+                    </div>
                   </div>
 
-                  <div style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', padding: '1.125rem 1.375rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', padding: '1.125rem 1.25rem' }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', marginBottom: '0.2rem' }}>Automated Background Sync</div>
-                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1.5 }}>Run continuous sync of pull request metadata via GitHub Webhooks.</div>
+                        <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#fff', marginBottom: '0.15rem' }}>Continuous Background Polling</div>
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>Synchronizes pull request states in real-time alongside GitHub Webhooks.</div>
                       </div>
                       <Toggle checked={general.autoSync} onChange={v => setGeneral(p => ({ ...p, autoSync: v }))} />
                     </div>
                     {general.autoSync && (
-                      <div style={{ padding: '0 1.375rem 1.125rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', marginTop: '0.875rem' }}>
-                          Sync Interval
+                      <div style={{ padding: '0 1.25rem 1.125rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                        <label className="form-label" style={{ marginTop: '0.75rem' }}>
+                          Telemetry Polling Frequency
                         </label>
                         <select
                           value={general.syncInterval}
                           onChange={e => setGeneral(p => ({ ...p, syncInterval: e.target.value }))}
                           className="form-input"
-                          style={{ width: 'auto', minWidth: 220 }}
+                          style={{ width: 'auto', minWidth: 260 }}
                         >
-                          <option value="5">Every 5 minutes — Real-time</option>
-                          <option value="15">Every 15 minutes — Balanced</option>
+                          <option value="5">Every 5 minutes — Real-time stream</option>
+                          <option value="15">Every 15 minutes — High Performance</option>
                           <option value="30">Every 30 minutes</option>
-                          <option value="60">Hourly</option>
+                          <option value="60">Hourly batch sync</option>
                         </select>
                       </div>
                     )}
                   </div>
 
-                  <div style={{ padding: '1.125rem 1.375rem', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10 }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', marginBottom: '0.625rem' }}>Workspace Theme</div>
+                  <div style={{ padding: '1.125rem 1.25rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#fff', marginBottom: '0.5rem' }}>Dashboard Visual Theme</div>
                     <select
                       value={general.theme}
                       onChange={e => setGeneral(p => ({ ...p, theme: e.target.value }))}
                       className="form-input"
-                      style={{ width: 'auto', minWidth: 240 }}
+                      style={{ width: 'auto', minWidth: 260 }}
                     >
-                      <option value="dark">Deep Space — Premium Dark Mode</option>
-                      <option value="system">System Default</option>
+                      <option value="dark">Executive Deep Dark Glass (Active)</option>
+                      <option value="system">Follow System Appearance</option>
                     </select>
                   </div>
                 </>
               )}
 
               {/* Action bar */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <button type="submit" className="btn btn-primary">
                   Save Changes
                 </button>
               </div>
             </div>
           </form>
+
         </div>
       </div>
     </div>
   )
 }
+

@@ -1,67 +1,46 @@
-
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import DashboardHeader from '../../components/shared/DashboardHeader'
 import { useApp } from '../../store/AppContext'
 
 const TYPE_CONFIGS = {
   critical: {
     color: '#ef4444',
-    bg: 'rgba(239, 68, 68, 0.08)',
-    border: 'rgba(239, 68, 68, 0.2)',
-    label: 'Critical',
-    icon: (
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-    )
+    bg: 'rgba(239, 68, 68, 0.1)',
+    border: 'rgba(239, 68, 68, 0.35)',
+    label: 'Critical Incident',
+    icon: '🔥'
   },
   warning: {
     color: '#fbbf24',
-    bg: 'rgba(251, 191, 36, 0.08)',
-    border: 'rgba(251, 191, 36, 0.2)',
+    bg: 'rgba(251, 191, 36, 0.1)',
+    border: 'rgba(251, 191, 36, 0.35)',
     label: 'Warning',
-    icon: (
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-        <line x1="12" y1="9" x2="12" y2="13" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    )
+    icon: '⚠️'
   },
   info: {
     color: '#3b82f6',
-    bg: 'rgba(59, 130, 246, 0.08)',
-    border: 'rgba(59, 130, 246, 0.2)',
-    label: 'Info',
-    icon: (
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="16" x2="12" y2="12" />
-        <line x1="12" y1="8" x2="12.01" y2="8" />
-      </svg>
-    )
+    bg: 'rgba(59, 130, 246, 0.1)',
+    border: 'rgba(59, 130, 246, 0.35)',
+    label: 'Notification',
+    icon: 'ℹ️'
   },
   error: {
     color: '#f87171',
-    bg: 'rgba(248, 113, 113, 0.08)',
-    border: 'rgba(248, 113, 113, 0.2)',
-    label: 'Error',
-    icon: (
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="15" y1="9" x2="9" y2="15" />
-        <line x1="9" y1="9" x2="15" y2="15" />
-      </svg>
-    )
+    bg: 'rgba(248, 113, 113, 0.1)',
+    border: 'rgba(248, 113, 113, 0.35)',
+    label: 'Pipeline Error',
+    icon: '⚡'
   }
 }
 
 export default function Alerts() {
-  const { alerts, markAlertRead, clearAllAlerts } = useApp()
+  const { alerts, markAlertRead, clearAllAlerts, showToast } = useApp()
   const [filter, setFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+
+  const unreadCount = useMemo(() => alerts.filter(a => !a.read).length, [alerts])
+  const criticalCount = useMemo(() => alerts.filter(a => a.type === 'critical' || a.type === 'error').length, [alerts])
 
   const filteredAlerts = alerts.filter(alert => {
     if (filter === 'unread' && alert.read) return false
@@ -70,39 +49,72 @@ export default function Alerts() {
     return true
   })
 
+  const handleClearAll = () => {
+    clearAllAlerts()
+    showToast('All alerts marked as read', 'info')
+  }
+
   return (
     <div className="app-page">
       <DashboardHeader
-        title="System Alerts"
-        subtitle="Real-time notifications, workload triggers, and dependency blocks."
+        title="Incident & Alert Feed"
+        subtitle="Real-time telemetry triggers, reviewer overload warnings, and blocker alerts"
       />
 
       <div className="page-content">
-        {/* Controls Bar */}
-        <div className="glass" style={{ borderRadius: 'var(--radius-md)', padding: '1rem 1.375rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            {/* Read / Unread tab group */}
-            <div className="alerts-tab-group">
+
+        {/* ── Top Summary Telemetry ─── */}
+        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '1.25rem' }}>
+          <div className="stat-card glass" style={{ borderRadius: 12, padding: '1.125rem 1.25rem', borderColor: unreadCount > 0 ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.08)' }}>
+            <h3 className="stat-card-title">Unacknowledged Alerts</h3>
+            <div className="stat-card-value" style={{ color: '#60a5fa', marginTop: '0.35rem' }}>{unreadCount}</div>
+            <p className="stat-card-subtitle">{unreadCount > 0 ? 'Action required' : 'All clear'}</p>
+          </div>
+
+          <div className="stat-card glass" style={{ borderRadius: 12, padding: '1.125rem 1.25rem', borderColor: criticalCount > 0 ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.08)' }}>
+            <h3 className="stat-card-title">Critical PR Bottlenecks</h3>
+            <div className="stat-card-value" style={{ color: '#f87171', marginTop: '0.35rem' }}>{criticalCount}</div>
+            <p className="stat-card-subtitle">{criticalCount > 0 ? 'Impacts downstream releases' : 'No release blockers'}</p>
+          </div>
+
+          <div className="stat-card glass" style={{ borderRadius: 12, padding: '1.125rem 1.25rem', borderColor: 'rgba(52,211,153,0.3)' }}>
+            <h3 className="stat-card-title">Live Triage Watchdog</h3>
+            <div className="stat-card-value" style={{ color: '#34d399', marginTop: '0.35rem' }}>Active</div>
+            <p className="stat-card-subtitle">Automated rule evaluation</p>
+          </div>
+        </div>
+
+        {/* ── Controls Bar ─── */}
+        <div className="glass" style={{ borderRadius: 12, padding: '0.875rem 1.25rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {/* Filter Tabs */}
+            <div style={{ display: 'flex', gap: '0.3rem' }}>
               {[
                 { key: 'all', label: `All (${alerts.length})` },
-                { key: 'unread', label: `Unread (${alerts.filter(a => !a.read).length})` },
-                { key: 'read', label: `Read (${alerts.filter(a => a.read).length})` },
+                { key: 'unread', label: `Unread (${unreadCount})` },
+                { key: 'read', label: `Read (${alerts.length - unreadCount})` },
               ].map(t => (
                 <button
                   key={t.key}
                   onClick={() => setFilter(t.key)}
-                  className={`alerts-tab ${filter === t.key ? 'active' : ''}`}
+                  className={`btn btn-ghost ${filter === t.key ? 'btn-ghost-active' : ''}`}
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '0.35rem 0.75rem',
+                    ...(filter === t.key ? { background: 'rgba(59,130,246,0.15)', borderColor: 'rgba(59,130,246,0.4)', color: 'var(--blue-300)' } : {})
+                  }}
                 >
                   {t.label}
                 </button>
               ))}
             </div>
 
-            {/* Severity filter */}
+            {/* Severity Filter */}
             <select
               value={typeFilter}
               onChange={e => setTypeFilter(e.target.value)}
-              className="alerts-severity-select"
+              className="form-input"
+              style={{ width: 'auto', padding: '0.35rem 0.75rem', fontSize: '0.75rem', height: 32 }}
               aria-label="Filter by severity"
             >
               <option value="all">All Severities</option>
@@ -112,33 +124,28 @@ export default function Alerts() {
             </select>
           </div>
 
-          {alerts.some(a => !a.read) && (
+          {unreadCount > 0 && (
             <button
-              onClick={clearAllAlerts}
+              onClick={handleClearAll}
               className="btn btn-ghost"
-              style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.25)', fontSize: '0.75rem' }}
+              style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.3)', fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
             >
               Mark All as Read
             </button>
           )}
         </div>
 
-        {/* Alerts List */}
+        {/* ── Alerts Feed ─── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {filteredAlerts.length === 0 ? (
-            <div className="glass" style={{ borderRadius: 'var(--radius-md)' }}>
-              <div className="empty-state">
-                <div className="empty-state-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-40)" strokeWidth="1.5">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                </div>
-                <div className="empty-state-title">No alerts found</div>
-                <p className="empty-state-desc">
-                  There are no alerts matching the active filters. Everything in the workflow is running smoothly.
-                </p>
-              </div>
+            <div className="glass" style={{ borderRadius: 16, padding: '4rem 2rem', textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#34d399' }}>✓</div>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.125rem', color: '#fff', fontWeight: 700, marginBottom: '0.35rem' }}>
+                All Systems Operational
+              </h3>
+              <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.45)', maxWidth: 460, margin: '0 auto' }}>
+                No active incident alerts matching the selected filters. All pull request pipelines are flowing smoothly.
+              </p>
             </div>
           ) : (
             filteredAlerts.map((alert) => {
@@ -146,75 +153,89 @@ export default function Alerts() {
               return (
                 <div
                   key={alert.id}
-                  className="glass"
+                  className="glass alert-feed-item"
                   style={{
-                    borderRadius: 'var(--radius-md)',
-                    borderLeft: `3px solid ${cfg.color}`,
+                    borderRadius: 12,
+                    borderLeft: `4px solid ${cfg.color}`,
+                    background: `linear-gradient(90deg, ${cfg.bg} 0%, rgba(8,14,28,0.7) 100%)`,
+                    borderColor: cfg.border,
                     display: 'flex',
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
                     gap: '1rem',
-                    padding: '1rem 1.375rem',
-                    opacity: alert.read ? 0.6 : 1,
-                    transition: 'opacity 0.2s ease',
+                    padding: '1.125rem 1.35rem',
+                    opacity: alert.read ? 0.65 : 1,
+                    transition: 'all 0.2s ease',
                   }}
                 >
-                  <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start', flex: 1 }}>
-                    {/* Icon */}
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flex: 1 }}>
                     <div style={{
-                      padding: '0.4375rem',
-                      borderRadius: 8,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       background: cfg.bg,
-                      color: cfg.color,
                       border: `1px solid ${cfg.border}`,
-                      flexShrink: 0,
-                      marginTop: '0.1rem',
+                      fontSize: '1rem',
+                      flexShrink: 0
                     }}>
                       {cfg.icon}
                     </div>
 
-                    {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.375rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
                         <span style={{
-                          fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em',
-                          textTransform: 'uppercase', padding: '0.2rem 0.5rem',
-                          borderRadius: 4, background: cfg.bg, color: cfg.color,
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: 4,
+                          background: cfg.bg,
+                          color: cfg.color,
+                          border: `1px solid ${cfg.border}`
                         }}>
                           {cfg.label}
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-40)', fontFamily: 'var(--font-mono)' }}>{alert.age}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
+                          {alert.age || 'Just now'}
+                        </span>
                         {!alert.read && (
-                          <span style={{
-                            width: 6, height: 6, borderRadius: '50%',
-                            background: 'var(--cyan-400)',
-                            boxShadow: '0 0 6px var(--cyan-400)',
-                            display: 'inline-block',
-                            animation: 'pulse 2.2s ease-in-out infinite',
-                          }} />
+                          <span className="live-pulse-dot" style={{ width: 7, height: 7, marginLeft: '0.25rem' }} />
                         )}
                       </div>
-                      <p style={{ fontSize: '0.875rem', color: 'var(--text-80)', lineHeight: 1.55, margin: 0 }}>
+
+                      <p style={{ fontSize: '0.875rem', color: '#fff', lineHeight: 1.55, margin: 0, fontWeight: 500 }}>
                         {alert.message}
                       </p>
                     </div>
                   </div>
 
-                  {!alert.read && (
-                    <button
-                      onClick={() => markAlertRead(alert.id)}
-                      className="btn btn-ghost"
-                      style={{ fontSize: '0.75rem', flexShrink: 0, alignSelf: 'center' }}
-                    >
-                      Mark read
-                    </button>
-                  )}
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
+                    <Link to="/prs" className="btn btn-ghost" style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}>
+                      Inspect PR →
+                    </Link>
+                    {!alert.read && (
+                      <button
+                        onClick={() => {
+                          markAlertRead(alert.id)
+                          showToast('Alert acknowledged', 'info')
+                        }}
+                        className="btn btn-ghost"
+                        style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem', color: 'var(--cyan-400)' }}
+                      >
+                        Acknowledge
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })
           )}
         </div>
+
       </div>
     </div>
   )

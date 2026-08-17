@@ -3,158 +3,134 @@ import DashboardHeader from '../../components/shared/DashboardHeader'
 import { useApp } from '../../store/AppContext'
 
 const AUDIT_LOGS = [
-  { id: 1, action: 'Updated Priority Weights', resource: 'Workspace Settings', date: 'Just now', ip: '192.168.1.45' },
-  { id: 2, action: 'Synchronized Org Repository', resource: 'facebook/react', date: '10 mins ago', ip: '192.168.1.45' },
-  { id: 3, action: 'Successful Authentication', resource: 'Login Portal', date: '1 hour ago', ip: '192.168.1.45' },
-  { id: 4, action: 'Connected GitHub Organization', resource: 'SarahDev-Org', date: '2 days ago', ip: '192.168.1.2' },
+  { id: 1, action: 'Updated Priority Weights', resource: 'Triage Engine', date: 'Just now', ip: '192.168.1.45', type: 'config' },
+  { id: 2, action: 'Synchronized Org Repository', resource: 'facebook/react', date: '10 mins ago', ip: '192.168.1.45', type: 'sync' },
+  { id: 3, action: 'GitHub OAuth Verification', resource: 'OAuth 2.0 Provider', date: '1 hour ago', ip: '192.168.1.45', type: 'auth' },
+  { id: 4, action: 'Linked Organization Scope', resource: 'PRFlow Enterprise', date: '2 days ago', ip: '192.168.1.2', type: 'admin' },
 ]
 
 export default function Profile() {
   const { user, showToast } = useApp()
   const [profile, setProfile] = useState({
-    name: user?.username || '',
-    email: user?.email || '',
-    role: '',
-    githubUsername: 'sarahdev-code',
-    receiveActivityAlerts: true,
+    name: user?.username || 'Sarah Dev',
+    email: user?.email || 'sarah@developer.io',
+    role: 'Lead Platform Architect',
+    githubUsername: user?.username || 'sarahdev-code',
   })
 
   const [pw, setPw] = useState({ current: '', newPw: '', confirm: '' })
 
   const handleProfileUpdate = (e) => {
     e.preventDefault()
-    showToast('Profile credentials saved.', 'success')
+    showToast('Developer profile credentials saved.', 'success')
   }
 
   const handlePasswordUpdate = (e) => {
     e.preventDefault()
     if (!pw.current || !pw.newPw || !pw.confirm) {
-      showToast('All password fields are required.', 'error'); return
+      showToast('All password fields are required.', 'error')
+      return
     }
     if (pw.newPw !== pw.confirm) {
-      showToast('Passwords do not match.', 'error'); return
+      showToast('Passwords do not match.', 'error')
+      return
     }
-    showToast('Your security credentials have been updated.', 'success')
+    showToast('Security credentials updated.', 'success')
     setPw({ current: '', newPw: '', confirm: '' })
-  }
-
-  const cardStyle = {
-    borderRadius: 'var(--radius-md)',
-    padding: '1.75rem',
-    background: 'rgba(8,14,28,0.6)',
-    border: '1px solid var(--border-8)',
-    backdropFilter: 'blur(24px)',
-  }
-
-  const labelStyle = {
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    color: 'var(--text-40)',
-    marginBottom: '0.5rem',
-    display: 'block',
   }
 
   return (
     <div className="app-page">
       <DashboardHeader
-        title="Developer Profile"
-        subtitle="Manage your personal credentials, identity links, and workspace logs."
+        title="Developer Passport"
+        subtitle="Manage personal GitHub identity, OAuth scopes, and security audit logs"
       />
 
       <div className="page-content">
-        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '1.25rem', alignItems: 'start' }}>
 
-          {/* LEFT — Profile card + Audit log */}
+          {/* ── LEFT: Holographic Developer Passport & Audit ─── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-            {/* Profile Card */}
-            <div style={{ ...cardStyle, textAlign: 'center', padding: '2rem 1.75rem' }}>
-              <div className="profile-avatar-ring" style={{ margin: '0 auto 1.25rem' }}>
-                {(user?.username || '??').slice(0, 2).toUpperCase()}
+            {/* Passport Card */}
+            <div className="glass" style={{ borderRadius: 16, padding: '2rem 1.5rem', textAlign: 'center', borderColor: 'rgba(34,211,238,0.3)', background: 'linear-gradient(135deg, rgba(8,14,28,0.9) 0%, rgba(13,23,46,0.85) 100%)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 3, background: 'linear-gradient(90deg, #3b82f6, var(--cyan-400), #a855f7)' }} />
+
+              <div className="reviewer-avatar" style={{ width: 64, height: 64, fontSize: '1.35rem', fontWeight: 800, margin: '0 auto 1rem', background: 'linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%)', color: '#040810', border: '3px solid rgba(255,255,255,0.2)', boxShadow: '0 0 25px rgba(34,211,238,0.35)' }}>
+                {(user?.username || 'PR').slice(0, 2).toUpperCase()}
               </div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.125rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-100)', marginBottom: '0.2rem' }}>
+
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 800, color: '#fff', marginBottom: '0.25rem' }}>
                 {profile.name}
-              </div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--cyan-400)', fontWeight: 600, marginBottom: '0.25rem' }}>
+              </h3>
+              <div style={{ fontSize: '0.75rem', color: 'var(--cyan-400)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.35rem' }}>
                 {profile.role}
               </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-40)', marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', marginBottom: '1.25rem' }}>
                 {profile.email}
               </div>
 
-              {/* Meta rows */}
-              <div style={{ borderTop: '1px solid var(--border-4)', paddingTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {[
-                  {
-                    label: 'Linked Identity',
-                    value: (
-                      <span style={{ fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-                        </svg>
-                        @{profile.githubUsername}
-                      </span>
-                    )
-                  },
-                  { label: 'Access Level', value: <strong>Org Administrator</strong> },
-                  {
-                    label: 'Status',
-                    value: (
-                      <span style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#34d399', display: 'inline-block' }} />
-                        Active
-                      </span>
-                    )
-                  },
-                ].map((row, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
-                    <span style={{ color: 'var(--text-40)' }}>{row.label}</span>
-                    <span style={{ color: 'var(--text-80)' }}>{row.value}</span>
+              {/* Passport Metadata */}
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>GitHub Linked</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', color: '#fff', fontWeight: 600 }}>@{profile.githubUsername}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>Auth Method</span>
+                  <span className="tag tag-blue" style={{ fontSize: '0.625rem' }}>OAuth 2.0 Verified</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>Plan Tier</span>
+                  <span className="pro-tier-pill" style={{ padding: '0.15rem 0.5rem', fontSize: '0.625rem' }}>PRO SUITE</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>Account Status</span>
+                  <span style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399' }} />
+                    Active Session
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Audit Log Stream */}
+            <div className="glass dashboard-section">
+              <div className="section-header">
+                <h3 className="section-title">Security Audit Log</h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {AUDIT_LOGS.map((log, i) => (
+                  <div key={log.id} style={{ padding: '0.5rem 0', borderBottom: i < AUDIT_LOGS.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#fff' }}>{log.action}</span>
+                      <span style={{ fontSize: '0.625rem', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>{log.date}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)' }}>
+                      <span>{log.resource}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)' }}>{log.ip}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Audit Log */}
-            <div style={cardStyle}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-40)" strokeWidth="2">
-                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                <span style={{ fontFamily: 'var(--font-heading)', fontSize: '0.9375rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-100)' }}>
-                  Audit Log
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                {AUDIT_LOGS.map((log, i) => (
-                  <div key={log.id} style={{ padding: '0.625rem 0', borderBottom: i < AUDIT_LOGS.length - 1 ? '1px solid var(--border-4)' : 'none' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.2rem' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-80)' }}>{log.action}</span>
-                      <span style={{ fontSize: '0.625rem', color: 'var(--text-40)', fontFamily: 'var(--font-mono)', flexShrink: 0, marginLeft: '0.5rem' }}>{log.date}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.625rem', color: 'var(--text-40)', fontFamily: 'var(--font-mono)' }}>
-                      <span>{log.resource}</span>
-                      <span>IP: {log.ip}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* RIGHT — Forms */}
+          {/* ── RIGHT: Forms & Settings ─── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-            {/* Account Credentials */}
-            <div style={cardStyle}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-100)', marginBottom: '1.5rem' }}>
-                Account Credentials
-              </h2>
+            {/* Profile Information Form */}
+            <div className="glass dashboard-section">
+              <div className="section-header">
+                <h3 className="section-title">Identity & Role Credentials</h3>
+              </div>
+
               <form onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-field">
-                    <label style={labelStyle}>Display Name</label>
+                    <label className="form-label">Display Name</label>
                     <input
                       type="text"
                       value={profile.name}
@@ -163,18 +139,18 @@ export default function Profile() {
                     />
                   </div>
                   <div className="form-field">
-                    <label style={labelStyle}>System Role</label>
+                    <label className="form-label">Primary Role</label>
                     <input
                       type="text"
                       value={profile.role}
-                      disabled
+                      onChange={e => setProfile(p => ({ ...p, role: e.target.value }))}
                       className="form-input"
-                      style={{ opacity: 0.5, cursor: 'not-allowed' }}
                     />
                   </div>
                 </div>
+
                 <div className="form-field">
-                  <label style={labelStyle}>Registered Email</label>
+                  <label className="form-label">Registered Contact Email</label>
                   <input
                     type="email"
                     value={profile.email}
@@ -182,9 +158,10 @@ export default function Profile() {
                     className="form-input"
                   />
                 </div>
+
                 <div className="form-field">
-                  <label style={labelStyle}>GitHub Account Connection</label>
-                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <label className="form-label">Linked GitHub Username</label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <input
                       type="text"
                       value={profile.githubUsername}
@@ -192,27 +169,29 @@ export default function Profile() {
                       className="form-input"
                       style={{ flex: 1, fontFamily: 'var(--font-mono)' }}
                     />
-                    <button type="button" className="btn btn-ghost" style={{ flexShrink: 0 }}>
-                      Re-Auth
+                    <button type="button" onClick={() => showToast('Re-authenticated GitHub OAuth handshake', 'success')} className="btn btn-ghost" style={{ flexShrink: 0, fontSize: '0.75rem' }}>
+                      Re-Verify OAuth
                     </button>
                   </div>
                 </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
                   <button type="submit" className="btn btn-primary">
-                    Save Profile Settings
+                    Save Profile Changes
                   </button>
                 </div>
               </form>
             </div>
 
-            {/* Change Password */}
-            <div style={cardStyle}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-100)', marginBottom: '1.5rem' }}>
-                Security Credentials
-              </h2>
+            {/* Security Passwords Form */}
+            <div className="glass dashboard-section">
+              <div className="section-header">
+                <h3 className="section-title">Security & Session Password</h3>
+              </div>
+
               <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="form-field">
-                  <label style={labelStyle}>Current Password</label>
+                  <label className="form-label">Current Password</label>
                   <input
                     type="password"
                     value={pw.current}
@@ -221,31 +200,33 @@ export default function Profile() {
                     placeholder="Enter current password"
                   />
                 </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-field">
-                    <label style={labelStyle}>New Password</label>
+                    <label className="form-label">New Password</label>
                     <input
                       type="password"
                       value={pw.newPw}
                       onChange={e => setPw(p => ({ ...p, newPw: e.target.value }))}
                       className="form-input"
-                      placeholder="New password"
+                      placeholder="Minimum 8 characters"
                     />
                   </div>
                   <div className="form-field">
-                    <label style={labelStyle}>Confirm New Password</label>
+                    <label className="form-label">Confirm New Password</label>
                     <input
                       type="password"
                       value={pw.confirm}
                       onChange={e => setPw(p => ({ ...p, confirm: e.target.value }))}
                       className="form-input"
-                      placeholder="Confirm new password"
+                      placeholder="Repeat new password"
                     />
                   </div>
                 </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
                   <button type="submit" className="btn btn-primary">
-                    Update Password
+                    Update Security Password
                   </button>
                 </div>
               </form>
@@ -257,3 +238,4 @@ export default function Profile() {
     </div>
   )
 }
+

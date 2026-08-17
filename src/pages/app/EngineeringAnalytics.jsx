@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import DashboardHeader from '../../components/shared/DashboardHeader'
 import { LineChart, BarChart } from '../../components/shared/ChartMock'
 import { getEngineeringAnalytics } from '../../services/analyticsService'
@@ -22,8 +22,8 @@ export default function EngineeringAnalytics() {
   const activeRepoName = activeRepo ? `${activeRepo.owner}/${activeRepo.name}` : null
 
   const subtitle = activeRepoName
-    ? `Productivity trends for ${activeRepoName}`
-    : 'Productivity trends and velocity insights'
+    ? `Productivity velocity and turnaround trends for ${activeRepoName}`
+    : 'Productivity trends, review turnaround, and throughput velocity'
 
   useEffect(() => {
     setLoading(true)
@@ -38,9 +38,17 @@ export default function EngineeringAnalytics() {
   if (loading) {
     return (
       <div className="app-page">
-        <DashboardHeader title="Engineering Analytics" subtitle={subtitle} />
+        <DashboardHeader title="Velocity Analytics" subtitle={subtitle} />
         <div className="page-content">
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-40)' }}>Loading analytics...</div>
+          <div style={{ padding: '5rem 2rem', textAlign: 'center', color: 'var(--text-40)' }}>
+            <div className="live-pulse-dot" style={{ margin: '0 auto 1.5rem', width: 14, height: 14 }} />
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', color: '#fff', fontWeight: 700, marginBottom: '0.5rem' }}>
+              Computing Historical Throughput & Bottleneck Velocity...
+            </div>
+            <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)' }}>
+              Compiling cycle time distributions, first-review SLAs, and merge durations.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -49,9 +57,12 @@ export default function EngineeringAnalytics() {
   if (error || !data) {
     return (
       <div className="app-page">
-        <DashboardHeader title="Engineering Analytics" subtitle={subtitle} />
+        <DashboardHeader title="Velocity Analytics" subtitle={subtitle} />
         <div className="page-content">
-          <div style={{ padding: '3rem', textAlign: 'center', color: '#f87171' }}>{error || 'No data available'}</div>
+          <div className="glass" style={{ padding: '3rem', textAlign: 'center', borderRadius: 16 }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.75rem', color: '#f87171' }}>⚠️</div>
+            <p style={{ color: '#fca5a5', fontSize: '0.875rem' }}>{error || 'No data available'}</p>
+          </div>
         </div>
       </div>
     )
@@ -59,96 +70,125 @@ export default function EngineeringAnalytics() {
 
   const { summary, review_time_trend, merge_time_trend, blockers_trend, pr_volume_trend } = data
 
-  // ChartMock's LineChart does Math.min/max across raw values, which
-  // silently treats null as 0 anyway — converting explicitly here
-  // makes that intentional instead of relying on implicit JS coercion,
-  // and keeps every week's data point visible on the axis.
   const chartSafe = (trend) => trend.map(p => ({ ...p, value: p.value ?? 0 }))
-
   const reviewChartData = chartSafe(review_time_trend)
   const mergeChartData = chartSafe(merge_time_trend)
 
   const stats = [
-    { label: 'Avg Review Time', value: formatHours(summary.avg_review_time_hours), color: '#60a5fa' },
-    { label: 'Avg Merge Time', value: formatHours(summary.avg_merge_time_hours), color: '#22d3ee' },
-    { label: 'PRs Created', value: summary.prs_created, color: '#34d399' },
-    { label: 'New Dependency Links', value: summary.blockers_detected, color: '#fbbf24' },
+    { label: 'Avg Review SLA', value: formatHours(summary.avg_review_time_hours), color: '#60a5fa', sub: 'Target: < 4.0h' },
+    { label: 'Avg Merge Turnaround', value: formatHours(summary.avg_merge_time_hours), color: '#22d3ee', sub: 'Creation to master merge' },
+    { label: 'PRs Shipped', value: summary.prs_created, color: '#34d399', sub: `During ${range} period` },
+    { label: 'Dependency Links', value: summary.blockers_detected, color: '#fbbf24', sub: 'Cross-PR relationships' },
   ]
 
   return (
     <div className="app-page">
-      <DashboardHeader title="Engineering Analytics" subtitle={subtitle} />
+      <DashboardHeader title="Velocity Analytics" subtitle={subtitle} />
       <div className="page-content">
-        {/* Time range */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          {['2W', '4W', '6W', '3M'].map(r => (
-            <button key={r} onClick={() => setRange(r)} className={`btn btn-ghost ${range === r ? 'btn-ghost-active' : ''}`} style={{ padding: '0.375rem 0.875rem', fontSize: '0.8125rem', ...(range === r ? { background: 'rgba(59,130,246,0.15)', borderColor: 'rgba(59,130,246,0.4)', color: 'var(--blue-300)' } : {}) }}>
-              {r}
-            </button>
-          ))}
+
+        {/* Time range switcher bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.35rem' }}>
+            {['2W', '4W', '6W', '3M'].map(r => (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                className={`btn btn-ghost ${range === r ? 'btn-ghost-active' : ''}`}
+                style={{
+                  padding: '0.35rem 0.85rem',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  ...(range === r ? { background: 'rgba(59,130,246,0.2)', borderColor: 'rgba(59,130,246,0.45)', color: 'var(--cyan-400)' } : {})
+                }}
+              >
+                {r} Window
+              </button>
+            ))}
+          </div>
+
+          <span className="glow-pill" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--cyan-400)', border: '1px solid rgba(34,211,238,0.25)' }}>
+            📊 Telemetry Range: {range}
+          </span>
         </div>
 
         {/* Summary stats */}
-        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: '2rem' }}>
+        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', marginBottom: '1.25rem' }}>
           {stats.map((s, i) => (
-            <div key={i} className="stat-card glass">
+            <div key={i} className="stat-card glass" style={{ borderRadius: 12, padding: '1.125rem 1.25rem', borderColor: `${s.color}25` }}>
               <h3 className="stat-card-title">{s.label}</h3>
-              <div className="stat-card-value" style={{ color: s.color }}>{s.value}</div>
+              <div className="stat-card-value" style={{ color: s.color, marginTop: '0.35rem' }}>{s.value}</div>
+              <p className="stat-card-subtitle">{s.sub}</p>
             </div>
           ))}
         </div>
 
         {/* Line charts */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-          <div className="glass" style={{ borderRadius: 14, padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 className="section-title">Review Time Trend</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-40)', marginTop: '0.2rem' }}>Average hours from PR open to first submitted review, by week reviewed</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+          <div className="glass dashboard-section">
+            <div className="section-header">
+              <div>
+                <h3 className="section-title">Review SLA Trend</h3>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.15rem' }}>Average hours from PR open to first review</p>
+              </div>
             </div>
             {review_time_trend.some(p => p.value !== null) ? (
-              <LineChart data={reviewChartData} color="#3b82f6" height={120} />
+              <div style={{ padding: '0.5rem 0' }}>
+                <LineChart data={reviewChartData} color="#3b82f6" height={130} />
+              </div>
             ) : (
-              <p style={{ fontSize: '0.8125rem', color: 'var(--text-40)', padding: '2rem 0', textAlign: 'center' }}>No reviewed PRs in this range yet.</p>
+              <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', padding: '2.5rem 0', textAlign: 'center' }}>No reviewed PRs in this range yet.</p>
             )}
           </div>
 
-          <div className="glass" style={{ borderRadius: 14, padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 className="section-title">Merge Time Trend</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-40)', marginTop: '0.2rem' }}>Average hours from PR open to merge, by week merged</p>
+          <div className="glass dashboard-section">
+            <div className="section-header">
+              <div>
+                <h3 className="section-title">Merge Turnaround Velocity</h3>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.15rem' }}>Average hours from PR open to production merge</p>
+              </div>
             </div>
             {merge_time_trend.some(p => p.value !== null) ? (
-              <LineChart data={mergeChartData} color="#22d3ee" height={120} />
+              <div style={{ padding: '0.5rem 0' }}>
+                <LineChart data={mergeChartData} color="#22d3ee" height={130} />
+              </div>
             ) : (
-              <p style={{ fontSize: '0.8125rem', color: 'var(--text-40)', padding: '2rem 0', textAlign: 'center' }}>No merged PRs in this range yet.</p>
+              <p style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', padding: '2.5rem 0', textAlign: 'center' }}>No merged PRs in this range yet.</p>
             )}
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-          {/* Dependency links chart — proxy for bottleneck activity */}
-          <div className="glass" style={{ borderRadius: 14, padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 className="section-title">New Dependency Links per Week</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-40)', marginTop: '0.2rem' }}>
-                Blocking relationships detected between PRs each week. A live blocked-PR count isn't
-                tracked historically, so this counts newly-created dependency links instead — a real,
-                timestamped signal of bottleneck activity over time.
-              </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+          {/* Dependency links chart */}
+          <div className="glass dashboard-section">
+            <div className="section-header">
+              <div>
+                <h3 className="section-title">New Dependency Links per Week</h3>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.15rem' }}>
+                  Blocking relationships detected across PRs each week
+                </p>
+              </div>
             </div>
-            <LineChart data={blockers_trend} color="#f87171" height={120} />
+            <div style={{ padding: '0.5rem 0' }}>
+              <LineChart data={blockers_trend} color="#f87171" height={130} />
+            </div>
           </div>
 
           {/* PR creation vs closed bar */}
-          <div className="glass" style={{ borderRadius: 14, padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 className="section-title">PR Volume</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-40)', marginTop: '0.2rem' }}>Created vs. merged/closed pull requests per week</p>
+          <div className="glass dashboard-section">
+            <div className="section-header">
+              <div>
+                <h3 className="section-title">Throughput Volume</h3>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.15rem' }}>Created (blue) vs. Closed/Merged (cyan) PRs</p>
+              </div>
             </div>
-            <BarChart data={pr_volume_trend} aKey="created" bKey="closed" aColor="#3b82f6" bColor="#22d3ee" height={120} />
+            <div style={{ padding: '0.5rem 0' }}>
+              <BarChart data={pr_volume_trend} aKey="created" bKey="closed" aColor="#3b82f6" bColor="#22d3ee" height={130} />
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   )
 }
+

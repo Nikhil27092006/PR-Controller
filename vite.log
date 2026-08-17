@@ -31,3 +31,17 @@ Port 5175 is in use, trying another one...
 [2m8:49:31 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/public/Home.jsx[22m
 [2m8:49:32 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/public/Home.jsx[22m
 [2m8:49:50 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/FrameCanvas.jsx[22m
+[2m11:13:40 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/cartoon-theme.css[22m
+[2m11:13:55 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/shared/StatCard.jsx[22m
+[2m11:14:15 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/shared/Sidebar.jsx[22m
+[2m11:14:28 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/shared/DashboardHeader.jsx[22m
+[2m11:14:49 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/Dashboard.jsx[22m
+[2m11:15:13 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/PullRequests.jsx[22m
+[2m11:15:36 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/PRDetails.jsx[22m
+[2m11:15:55 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/DependencyGraph.jsx[22m
+[2m11:16:18 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/ReviewerAnalytics.jsx[22m
+[2m11:16:34 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/EngineeringAnalytics.jsx[22m
+[2m11:16:53 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/Repositories.jsx[22m
+[2m11:19:03 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/Alerts.jsx[22m
+[2m11:19:20 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/Profile.jsx[22m
+[2m11:19:41 pm[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/app/Settings.jsx[22m
