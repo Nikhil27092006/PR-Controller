@@ -1,12 +1,101 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState } from 'react'
 import DashboardHeader from '../../components/shared/DashboardHeader'
-import { LineChart, BarChart } from '../../components/shared/ChartMock'
+import { AlertTriangleIcon, BarChartIcon } from '../../components/shared/Icons'
 import { getEngineeringAnalytics } from '../../services/analyticsService'
 import { useApp } from '../../store/AppContext'
 
-function formatHours(hours) {
-  if (hours === null || hours === undefined) return '—'
-  return `${hours}h`
+function formatHours(h) {
+  if (h === null || h === undefined) return '—'
+  return `${h}h`
+}
+
+function LineChart({ data = [], color = '#3b82f6', height = 130 }) {
+  if (!data.length) return null
+  const values = data.map(d => d.value ?? 0)
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const width = 460
+  const h = height - 30
+  const step = width / Math.max(1, data.length - 1)
+
+  const points = data.map((d, i) => {
+    const x = i * step
+    const y = h - (((d.value ?? 0) - min) / range) * (h - 16) - 8
+    return { x, y, ...d }
+  })
+
+  const pathD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`
+  const areaD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${width},${h} L 0,${h} Z`
+
+  return (
+    <div style={{ width: '100%', overflowX: 'auto' }}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        <defs>
+          <linearGradient id={`grad-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+        <path d={areaD} fill={`url(#grad-${color.replace('#', '')})`} />
+        <path d={pathD} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="3.5" fill={color} stroke="#060b18" strokeWidth="2" />
+            <text x={p.x} y={height - 6} fill="rgba(255,255,255,0.4)" fontSize="9" textAnchor="middle" fontFamily="var(--font-mono)">
+              {p.date || p.week || ''}
+            </text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+function BarChart({ data = [], aKey = 'created', bKey = 'closed', aColor = '#3b82f6', bColor = '#22d3ee', height = 130 }) {
+  if (!data.length) return null
+  const maxVal = Math.max(...data.flatMap(d => [d[aKey] || 0, d[bKey] || 0]), 1)
+  const width = 460
+  const h = height - 30
+  const barGroupWidth = width / data.length
+  const barWidth = Math.min(14, barGroupWidth / 2.6)
+
+  return (
+    <div style={{ width: '100%', overflowX: 'auto' }}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        {data.map((d, i) => {
+          const groupX = i * barGroupWidth + barGroupWidth / 2
+          const aH = ((d[aKey] || 0) / maxVal) * (h - 10)
+          const bH = ((d[bKey] || 0) / maxVal) * (h - 10)
+          return (
+            <g key={i}>
+              <rect
+                x={groupX - barWidth - 1.5}
+                y={h - aH}
+                width={barWidth}
+                height={Math.max(2, aH)}
+                rx="2"
+                fill={aColor}
+                opacity="0.85"
+              />
+              <rect
+                x={groupX + 1.5}
+                y={h - bH}
+                width={barWidth}
+                height={Math.max(2, bH)}
+                rx="2"
+                fill={bColor}
+                opacity="0.85"
+              />
+              <text x={groupX} y={height - 6} fill="rgba(255,255,255,0.4)" fontSize="9" textAnchor="middle" fontFamily="var(--font-mono)">
+                {d.week || ''}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
 }
 
 export default function EngineeringAnalytics() {
@@ -60,7 +149,9 @@ export default function EngineeringAnalytics() {
         <DashboardHeader title="Velocity Analytics" subtitle={subtitle} />
         <div className="page-content">
           <div className="glass" style={{ padding: '3rem', textAlign: 'center', borderRadius: 16 }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.75rem', color: '#f87171' }}>⚠️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+              <AlertTriangleIcon size={32} color="#f87171" />
+            </div>
             <p style={{ color: '#fca5a5', fontSize: '0.875rem' }}>{error || 'No data available'}</p>
           </div>
         </div>
@@ -106,8 +197,9 @@ export default function EngineeringAnalytics() {
             ))}
           </div>
 
-          <span className="glow-pill" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--cyan-400)', border: '1px solid rgba(34,211,238,0.25)' }}>
-            📊 Telemetry Range: {range}
+          <span className="glow-pill" style={{ background: 'rgba(34,211,238,0.1)', color: 'var(--cyan-400)', border: '1px solid rgba(34,211,238,0.25)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+            <BarChartIcon size={12} color="var(--cyan-400)" />
+            <span>Telemetry Range: {range}</span>
           </span>
         </div>
 
@@ -191,4 +283,3 @@ export default function EngineeringAnalytics() {
     </div>
   )
 }
-

@@ -4,6 +4,16 @@ export async function getRepositories() {
   return apiRequest("/repositories/");
 }
 
+export async function getRepositoryDetail(repositoryId) {
+  return apiRequest(`/repositories/${repositoryId}`);
+}
+
+export async function syncRepository(repositoryId) {
+  return apiRequest(`/repositories/${repositoryId}/sync`, {
+    method: "POST"
+  });
+}
+
 export async function addRepository(owner, name) {
   return apiRequest("/repositories/", {
     method: "POST",
@@ -16,3 +26,4 @@ export async function deleteRepository(repositoryId) {
     method: "DELETE"
   });
 }
+

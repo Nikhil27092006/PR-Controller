@@ -137,9 +137,9 @@ export default function Sidebar() {
             padding: '0.4rem 0.6rem',
           }}
         >
-          <option value="all">🌐 All Connected Repos ({repos.length})</option>
+          <option value="all">All Connected Repos ({repos.length})</option>
           {repos.map(r => (
-            <option key={r.id} value={r.id}>📦 {r.owner}/{r.name}</option>
+            <option key={r.id} value={r.id}>{r.owner}/{r.name}</option>
           ))}
         </select>
       </div>
@@ -214,7 +214,7 @@ export default function Sidebar() {
               transition: 'all 0.15s ease'
             }}
           >
-            📖 Docs
+            Docs
           </Link>
           <Link
             to="/analysis-demo"
@@ -231,9 +231,10 @@ export default function Sidebar() {
               transition: 'all 0.15s ease'
             }}
           >
-            ⚡ Live Demo
+            Live Demo
           </Link>
         </div>
+
 
         {/* ── User Profile Badge ─── */}
         {user && (

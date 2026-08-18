@@ -432,6 +432,13 @@ class SyncService:
             db, repository, ranked_prs, pr_number_to_id, per_repo_github
         )
 
+        try:
+            repository.last_synced_at = datetime.utcnow()
+            db.commit()
+        except Exception:
+            pass
+
+
     def _enrich_prs_for_priority(
         self,
         db: Session,

@@ -2,6 +2,17 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import DashboardHeader from '../../components/shared/DashboardHeader'
 import DataTable from '../../components/shared/DataTable'
+import {
+  FireIcon,
+  ShieldBlockIcon,
+  RepoIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  MessageSquareIcon,
+  GitMergeIcon,
+  GitPullRequestIcon
+} from '../../components/shared/Icons'
 import { getPRs } from '../../services/prService'
 import { useApp } from '../../store/AppContext'
 
@@ -29,9 +40,6 @@ function adaptPR(pr, repoNameById) {
     ciStatus: pr.failing_checks ? 'failed' : 'success'
   }
 }
-
-const CI_ICONS  = { success: '✓', failed: '✗', pending: '⟳' }
-const CI_COLORS = { success: '#34d399', failed: '#f87171', pending: '#fbbf24' }
 
 export default function PullRequests() {
   const { selectedRepoId, repos } = useApp()
@@ -109,8 +117,9 @@ export default function PullRequests() {
     {
       key: 'repo', label: 'Repository', sortable: true, width: 160,
       render: (row) => (
-        <span className="tag tag-blue" style={{ fontSize: '0.6875rem' }}>
-          📦 {row.repo}
+        <span className="tag tag-blue" style={{ fontSize: '0.6875rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+          <RepoIcon size={10} color="currentColor" />
+          <span>{row.repo}</span>
         </span>
       )
     },
@@ -159,8 +168,9 @@ export default function PullRequests() {
     {
       key: 'reviewCount', label: 'Reviews', sortable: true, width: 85,
       render: (row) => (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.04)', padding: '0.15rem 0.45rem', borderRadius: 4 }}>
-          💬 {row.reviewCount}
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.04)', padding: '0.15rem 0.45rem', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+          <MessageSquareIcon size={11} color="var(--cyan-400)" />
+          <span>{row.reviewCount}</span>
         </span>
       )
     },
@@ -170,52 +180,105 @@ export default function PullRequests() {
         <span
           title={row.ciStatus === 'success' ? 'All CI checks passing' : 'CI checks failing'}
           style={{
-            color: CI_COLORS[row.ciStatus],
-            fontWeight: 800,
-            fontSize: '0.9rem',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             width: 22,
-            height: 22,
-            borderRadius: 6,
-            background: `${CI_COLORS[row.ciStatus]}15`,
-            border: `1px solid ${CI_COLORS[row.ciStatus]}35`
+            height: 22
           }}
         >
-          {CI_ICONS[row.ciStatus]}
+          {row.ciStatus === 'success' ? (
+            <CheckCircleIcon size={14} color="#34d399" />
+          ) : (
+            <XCircleIcon size={14} color="#f87171" />
+          )}
         </span>
       )
     },
+    {
+      key: 'actions', label: '', sortable: false, width: 70,
+      render: (row) => (
+        <Link to={`/prs/${row.id}`} className="btn btn-ghost" style={{ padding: '0.25rem 0.5rem', fontSize: '0.6875rem', color: 'var(--cyan-400)' }}>
+          Inspect
+        </Link>
+      )
+    }
   ]
 
   const FilterBar = (
-    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-      {[
-        { label: 'Priority', state: priorityFilter, setter: setPriorityFilter, opts: priorities },
-        { label: 'Status',   state: statusFilter,   setter: setStatusFilter,   opts: statuses },
-        { label: 'Repo',     state: repoFilter,     setter: setRepoFilter,     opts: repoOptions },
-      ].map(f => (
-        <select key={f.label} value={f.state} onChange={e => f.setter(e.target.value)} className="filter-select" aria-label={`Filter by ${f.label}`}>
-          {f.opts.map(o => <option key={o} value={o}>{f.label}: {o}</option>)}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+      {/* Priority Filter */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <span style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>Priority:</span>
+        <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+          className="form-input"
+          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 30, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          {priorities.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
-      ))}
+      </div>
 
-      {/* View mode toggle */}
-      <div className="view-mode-toggle" style={{ marginLeft: 'auto' }}>
+      {/* Status Filter */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <span style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>Status:</span>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="form-input"
+          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 30, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      {/* Repo Filter */}
+      {repoOptions.length > 2 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <span style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>Repo:</span>
+          <select
+            value={repoFilter}
+            onChange={(e) => setRepoFilter(e.target.value)}
+            className="form-input"
+            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', height: 30, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}
+          >
+            {repoOptions.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+      )}
+
+      {/* View Mode Toggle */}
+      <div style={{ marginLeft: 'auto', display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: 6, padding: 2, border: '1px solid rgba(255,255,255,0.08)' }}>
         <button
           onClick={() => setViewMode('table')}
-          className={`view-mode-btn ${viewMode === 'table' ? 'active' : ''}`}
-          title="Table View"
+          style={{
+            padding: '0.25rem 0.6rem',
+            background: viewMode === 'table' ? 'var(--blue-500)' : 'transparent',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 4,
+            fontSize: '0.6875rem',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+          Table
         </button>
         <button
           onClick={() => setViewMode('kanban')}
-          className={`view-mode-btn ${viewMode === 'kanban' ? 'active' : ''}`}
-          title="Kanban Board View"
+          style={{
+            padding: '0.25rem 0.6rem',
+            background: viewMode === 'kanban' ? 'var(--blue-500)' : 'transparent',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 4,
+            fontSize: '0.6875rem',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="10" rx="1"/></svg>
+          Board
         </button>
       </div>
     </div>
@@ -227,10 +290,10 @@ export default function PullRequests() {
 
   // Kanban Columns
   const kanbanColumns = [
-    { id: 'critical', title: '🔥 Critical Priority', color: '#fbbf24', items: filteredPRs.filter(p => ['Critical', 'High'].includes(p.priority) && p.status !== 'merged') },
-    { id: 'blocked', title: '⚠️ Blocked Dependency', color: '#f87171', items: filteredPRs.filter(p => p.status === 'blocked') },
-    { id: 'open', title: '⏳ In Review / Active', color: '#60a5fa', items: filteredPRs.filter(p => p.status === 'open' && !['Critical', 'High'].includes(p.priority)) },
-    { id: 'merged', title: '⚡ Merged', color: '#34d399', items: filteredPRs.filter(p => p.status === 'merged') },
+    { id: 'critical', title: 'Critical Priority', color: '#fbbf24', icon: <FireIcon size={14} color="#fbbf24" />, items: filteredPRs.filter(p => ['Critical', 'High'].includes(p.priority) && p.status !== 'merged') },
+    { id: 'blocked', title: 'Blocked Dependency', color: '#f87171', icon: <ShieldBlockIcon size={14} color="#f87171" />, items: filteredPRs.filter(p => p.status === 'blocked') },
+    { id: 'open', title: 'In Review / Active', color: '#60a5fa', icon: <ClockIcon size={14} color="#60a5fa" />, items: filteredPRs.filter(p => p.status === 'open' && !['Critical', 'High'].includes(p.priority)) },
+    { id: 'merged', title: 'Merged', color: '#34d399', icon: <GitMergeIcon size={14} color="#34d399" />, items: filteredPRs.filter(p => p.status === 'merged') },
   ]
 
   return (
@@ -281,7 +344,8 @@ export default function PullRequests() {
               {kanbanColumns.map(col => (
                 <div key={col.id} className="kanban-column" style={{ borderColor: `${col.color}20` }}>
                   <div className="kanban-col-header">
-                    <div className="kanban-col-title" style={{ color: col.color }}>
+                    <div className="kanban-col-title" style={{ color: col.color, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      {col.icon}
                       <span>{col.title}</span>
                     </div>
                     <span className="triage-count-badge" style={{ background: `${col.color}20`, color: col.color }}>
@@ -313,7 +377,10 @@ export default function PullRequests() {
                           {item.title}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem', fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)' }}>
-                          <span>📦 {item.repo}</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <RepoIcon size={10} color="currentColor" />
+                            <span>{item.repo}</span>
+                          </span>
                           <span>{item.age}</span>
                         </div>
                       </Link>
@@ -329,4 +396,3 @@ export default function PullRequests() {
     </div>
   )
 }
-

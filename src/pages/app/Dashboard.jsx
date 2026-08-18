@@ -2,6 +2,23 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import DashboardHeader from '../../components/shared/DashboardHeader'
 import StatCard from '../../components/shared/StatCard'
+import {
+  FireIcon,
+  ShieldBlockIcon,
+  UsersIcon,
+  UserIcon,
+  RepoIcon,
+  GitPullRequestIcon,
+  GitMergeIcon,
+  ClockIcon,
+  AlertTriangleIcon,
+  MessageSquareIcon,
+  XCircleIcon,
+  CheckCircleIcon,
+  LayersIcon,
+  ActivityIcon,
+  ZapIcon
+} from '../../components/shared/Icons'
 import { getDashboard } from '../../services/dashboardService'
 import { getPRs } from '../../services/prService'
 import { useApp } from '../../store/AppContext'
@@ -117,7 +134,9 @@ export default function Dashboard() {
         <DashboardHeader title="Command Center" subtitle="Real-time engineering workflow intelligence" />
         <div className="page-content">
           <div className="glass" style={{ padding: '3rem', textAlign: 'center', borderRadius: 16, borderColor: 'rgba(248,113,113,0.3)' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.75rem', color: '#f87171' }}>⚠️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+              <AlertTriangleIcon size={32} color="#f87171" />
+            </div>
             <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>Telemetry Sync Interrupted</div>
             <p style={{ color: '#fca5a5', fontSize: '0.875rem', marginBottom: '1.5rem' }}>{error}</p>
             <button onClick={() => window.location.reload()} className="btn btn-primary">
@@ -169,21 +188,24 @@ export default function Dashboard() {
               className="btn btn-primary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem' }}
             >
-              <span>🔥 Triage Critical ({criticalPRs.length})</span>
+              <FireIcon size={14} color="#fff" />
+              <span>Triage Critical ({criticalPRs.length})</span>
             </button>
             <Link
               to="/dependencies"
               className="btn glass"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#fff', textDecoration: 'none' }}
             >
-              <span>◈ Inspect Blockers</span>
+              <LayersIcon size={14} color="var(--cyan-400)" />
+              <span>Inspect Blockers</span>
             </Link>
             <Link
               to="/reviewers"
               className="btn glass"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#fff', textDecoration: 'none' }}
             >
-              <span>👥 Reviewer Load</span>
+              <UsersIcon size={14} color="#a855f7" />
+              <span>Reviewer Load</span>
             </Link>
           </div>
         </div>
@@ -197,7 +219,7 @@ export default function Dashboard() {
             trend="+12% sprint vol"
             trendDirection="up"
             subtitle={`Across ${dashboardData?.repositories_count ?? repos.length} connected repositories`}
-            icon="⬡"
+            icon={<GitPullRequestIcon size={15} color="#3b82f6" />}
             sparklineData={[14, 18, 16, 22, 25, 20, 28, dashboardData?.total_prs ?? 30]}
             onClick={() => navigate('/prs')}
           />
@@ -208,7 +230,7 @@ export default function Dashboard() {
             trend={criticalPRs.length > 0 ? 'Urgent attention' : 'Zero critical'}
             trendDirection={criticalPRs.length > 0 ? 'down' : 'up'}
             subtitle="Weighted priority score ≥ 75"
-            icon="▲"
+            icon={<FireIcon size={15} color="#fbbf24" />}
             sparklineData={[6, 5, 8, 4, 7, 5, 6, dashboardData?.critical_prs_count ?? 3]}
             onClick={() => handleTriageAction('critical')}
           />
@@ -219,7 +241,7 @@ export default function Dashboard() {
             trend={blockedPRs.length > 0 ? `${blockedPRs.length} bottlenecks` : 'Clear pipeline'}
             trendDirection={blockedPRs.length > 0 ? 'down' : 'up'}
             subtitle="Awaiting cross-PR dependencies"
-            icon="◈"
+            icon={<ShieldBlockIcon size={15} color="#f87171" />}
             sparklineData={[2, 3, 1, 4, 2, 5, 3, dashboardData?.blocked_prs_count ?? 2]}
             onClick={() => handleTriageAction('blocked')}
           />
@@ -230,7 +252,7 @@ export default function Dashboard() {
             trend="100% webhook health"
             trendDirection="up"
             subtitle="Syncing branches & PR events"
-            icon="◎"
+            icon={<RepoIcon size={15} color="#34d399" />}
             sparklineData={[1, 1, 2, 2, 3, 3, 4, dashboardData?.repositories_count ?? 4]}
             onClick={() => navigate('/repositories')}
           />
@@ -241,7 +263,7 @@ export default function Dashboard() {
             trend="1.8h faster this sprint"
             trendDirection="up"
             subtitle="Time to initial code review"
-            icon="△"
+            icon={<ClockIcon size={15} color="#22d3ee" />}
             sparklineData={[8.5, 7.2, 6.8, 5.5, 6.0, 4.8, 4.2, 3.8]}
             onClick={() => navigate('/analytics')}
           />
@@ -252,7 +274,7 @@ export default function Dashboard() {
             trend="0.6d median turnaround"
             trendDirection="up"
             subtitle="From open to trunk merge"
-            icon="◼"
+            icon={<GitMergeIcon size={15} color="#a855f7" />}
             sparklineData={[3.2, 2.8, 2.5, 2.1, 2.4, 1.9, 1.8, 1.6]}
             onClick={() => navigate('/analytics')}
           />
@@ -277,20 +299,23 @@ export default function Dashboard() {
                   onClick={() => setActiveTriageTab('critical')}
                   className={`triage-tab-btn ${activeTriageTab === 'critical' ? 'active' : ''}`}
                 >
-                  <span>🔥 Critical</span>
+                  <FireIcon size={13} color={activeTriageTab === 'critical' ? '#fbbf24' : 'currentColor'} />
+                  <span>Critical</span>
                   <span className="triage-count-badge">{criticalPRs.length}</span>
                 </button>
                 <button
                   onClick={() => setActiveTriageTab('blocked')}
                   className={`triage-tab-btn ${activeTriageTab === 'blocked' ? 'active' : ''}`}
                 >
-                  <span>⚠️ Blocked</span>
+                  <ShieldBlockIcon size={13} color={activeTriageTab === 'blocked' ? '#f87171' : 'currentColor'} />
+                  <span>Blocked</span>
                   <span className="triage-count-badge">{blockedPRs.length}</span>
                 </button>
                 <button
                   onClick={() => setActiveTriageTab('open')}
                   className={`triage-tab-btn ${activeTriageTab === 'open' ? 'active' : ''}`}
                 >
+                  <GitPullRequestIcon size={13} color={activeTriageTab === 'open' ? '#60a5fa' : 'currentColor'} />
                   <span>Active</span>
                   <span className="triage-count-badge">{openPRs.length}</span>
                 </button>
@@ -298,6 +323,7 @@ export default function Dashboard() {
                   onClick={() => setActiveTriageTab('all')}
                   className={`triage-tab-btn ${activeTriageTab === 'all' ? 'active' : ''}`}
                 >
+                  <LayersIcon size={13} color={activeTriageTab === 'all' ? '#a855f7' : 'currentColor'} />
                   <span>All</span>
                   <span className="triage-count-badge">{prs.length}</span>
                 </button>
@@ -306,7 +332,9 @@ export default function Dashboard() {
 
             {displayedPRs.length === 0 ? (
               <div style={{ padding: '3.5rem 2rem', textAlign: 'center', color: 'var(--text-40)' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.75rem', opacity: 0.5 }}>✓</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+                  <CheckCircleIcon size={32} color="#34d399" />
+                </div>
                 <div style={{ fontWeight: 600, color: 'rgba(255,255,255,0.8)', fontSize: '0.95rem' }}>
                   No pull requests in this category
                 </div>
@@ -354,26 +382,31 @@ export default function Dashboard() {
 
                         {/* Tag List */}
                         <div className="pr-tag-list">
-                          <span className="tag tag-blue" style={{ fontSize: '0.625rem', padding: '0.1rem 0.45rem' }}>
-                            📦 {repoNameById[pr.repository_id] || `repo #${pr.repository_id}`}
+                          <span className="tag tag-blue" style={{ fontSize: '0.625rem', padding: '0.1rem 0.45rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <RepoIcon size={10} color="currentColor" />
+                            <span>{repoNameById[pr.repository_id] || `repo #${pr.repository_id}`}</span>
                           </span>
                           <span style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                            👤 by <strong style={{ color: 'rgba(255,255,255,0.75)' }}>{pr.author || 'dev'}</strong>
+                            <UserIcon size={11} color="rgba(255,255,255,0.5)" />
+                            <span>by <strong style={{ color: 'rgba(255,255,255,0.75)' }}>{pr.author || 'dev'}</strong></span>
                           </span>
 
                           {isBlocked && (
-                            <span className="risk-chip risk-chip-danger">
-                              ⚠️ Blocked by dependency
+                            <span className="risk-chip risk-chip-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <ShieldBlockIcon size={11} color="#f87171" />
+                              <span>Blocked by dependency</span>
                             </span>
                           )}
                           {isFailing && (
-                            <span className="risk-chip risk-chip-danger">
-                              ✗ CI Checks Failed
+                            <span className="risk-chip risk-chip-danger" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <XCircleIcon size={11} color="#f87171" />
+                              <span>CI Checks Failed</span>
                             </span>
                           )}
                           {pr.review_count > 0 && (
-                            <span className="risk-chip risk-chip-info">
-                              💬 {pr.review_count} {pr.review_count === 1 ? 'Review' : 'Reviews'}
+                            <span className="risk-chip risk-chip-info" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <MessageSquareIcon size={11} color="var(--cyan-400)" />
+                              <span>{pr.review_count} {pr.review_count === 1 ? 'Review' : 'Reviews'}</span>
                             </span>
                           )}
                         </div>
@@ -431,7 +464,9 @@ export default function Dashboard() {
 
               {(!dashboardData?.reviewer_load || dashboardData.reviewer_load.length === 0) ? (
                 <div style={{ padding: '2.5rem 1.5rem', textAlign: 'center', color: 'var(--text-40)' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', opacity: 0.5 }}>👥</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem', opacity: 0.5 }}>
+                    <UsersIcon size={24} color="var(--cyan-400)" />
+                  </div>
                   <div style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>
                     No active reviewers assigned yet
                   </div>
@@ -469,8 +504,9 @@ export default function Dashboard() {
                               {percent}%
                             </span>
                             {isOver && (
-                              <span style={{ fontSize: '0.6rem', color: '#f87171', display: 'block', fontWeight: 600 }}>
-                                ⚠️ High Load
+                              <span style={{ fontSize: '0.6rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600, justifyContent: 'flex-end' }}>
+                                <AlertTriangleIcon size={10} color="#f87171" />
+                                <span>High Load</span>
                               </span>
                             )}
                           </div>
@@ -525,4 +561,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

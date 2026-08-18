@@ -1,0 +1,911 @@
+<title>PRFlow Intelligence — Project Reference</title>
+
+<style>
+  @font-face {
+    font-family: "InterLocal";
+    src: local("Inter"), local("system-ui");
+  }
+  @font-face {
+    font-family: "SpaceGroteskLocal";
+    src: local("Space Grotesk"), local("Inter");
+  }
+  @font-face {
+    font-family: "JetBrainsMonoLocal";
+    src: local("JetBrains Mono"), local("Consolas");
+  }
+
+  :root {
+    /* Light theme — designed first, tokens in :root */
+    --bg: #f5f3ee;
+    --surface: #ffffff;
+    --surface-2: #faf8f3;
+    --ink: #0b1220;
+    --ink-2: #1f2937;
+    --ink-3: #4b5563;
+    --ink-4: #6b7280;
+    --rule: #e3ddd0;
+    --rule-soft: #ece7da;
+
+    --cyan: #00d4ff;
+    --violet: #8b5cf6;
+    --amber: #fbbf24;
+    --rose: #f43f5e;
+    --emerald: #10b981;
+
+    --code-bg: #0b1220;
+    --code-ink: #d8e1f0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #070b16;
+      --surface: #0d1424;
+      --surface-2: #111a30;
+      --ink: #f4f7ff;
+      --ink-2: #cbd5e1;
+      --ink-3: #94a3b8;
+      --ink-4: #64748b;
+      --rule: #1d2942;
+      --rule-soft: #18223a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #070b16;
+    --surface: #0d1424;
+    --surface-2: #111a30;
+    --ink: #f4f7ff;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --ink-4: #64748b;
+    --rule: #1d2942;
+    --rule-soft: #18223a;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "InterLocal", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 28px 120px; }
+
+  /* Cover */
+  .cover {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    border-radius: 18px;
+    padding: 44px 40px;
+    margin-bottom: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(600px 220px at 90% -10%, rgba(139,92,246,0.18), transparent 60%),
+      radial-gradient(500px 220px at 0% 110%, rgba(0,212,255,0.16), transparent 60%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-family: "JetBrainsMonoLocal", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    font-weight: 600;
+  }
+  h1.title {
+    font-family: "SpaceGroteskLocal", "InterLocal", sans-serif;
+    font-size: 46px;
+    line-height: 1.05;
+    margin: 10px 0 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .subtitle {
+    color: var(--ink-3);
+    font-size: 16px;
+    max-width: 640px;
+    line-height: 1.55;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--ink-4);
+    font-family: "JetBrainsMonoLocal", monospace;
+  }
+  .meta b { color: var(--ink-2); font-weight: 600; }
+
+  /* TOC */
+  .toc {
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 44px;
+  }
+  .toc h2 {
+    font-family: "SpaceGroteskLocal", sans-serif;
+    margin: 0 0 14px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-4);
+    font-weight: 700;
+  }
+  .toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 22px;
+  }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 14px;
+    border-bottom: 1px dashed transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .toc a:hover { color: var(--cyan); border-color: var(--cyan); }
+  .toc .num { font-family: "JetBrainsMonoLocal", monospace; color: var(--ink-4); margin-right: 8px; font-size: 12px; }
+
+  @media (max-width: 640px) {
+    .toc ol { grid-template-columns: 1fr; }
+    h1.title { font-size: 34px; }
+  }
+
+  /* Sections */
+  section { margin-bottom: 56px; }
+  h2.sec {
+    font-family: "SpaceGroteskLocal", sans-serif;
+    font-size: 28px;
+    margin: 0 0 6px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  .sec-eyebrow {
+    font-family: "JetBrainsMonoLocal", monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 6px;
+  }
+  .sec-rule {
+    height: 2px;
+    width: 56px;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    margin: 14px 0 22px;
+    border-radius: 2px;
+  }
+  p { margin: 0 0 14px; color: var(--ink-2); }
+  p strong { color: var(--ink); }
+  ul, ol { color: var(--ink-2); padding-left: 22px; }
+  li { margin-bottom: 6px; }
+
+  /* Cards / grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin: 18px 0 6px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card h3 {
+    font-size: 14px;
+    margin: 0 0 6px;
+    color: var(--ink);
+    font-weight: 600;
+    font-family: "SpaceGroteskLocal", sans-serif;
+  }
+  .card p { font-size: 13px; margin: 0; color: var(--ink-3); line-height: 1.5; }
+  .card .pill {
+    display: inline-block;
+    font-family: "JetBrainsMonoLocal", monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .pill.cyan { background: rgba(0,212,255,0.12); color: var(--cyan); }
+  .pill.violet { background: rgba(139,92,246,0.14); color: var(--violet); }
+  .pill.amber { background: rgba(251,191,36,0.14); color: var(--amber); }
+  .pill.rose { background: rgba(244,63,94,0.14); color: var(--rose); }
+  .pill.emerald { background: rgba(16,185,129,0.14); color: var(--emerald); }
+
+  /* Code */
+  pre, code {
+    font-family: "JetBrainsMonoLocal", "Consolas", monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 12.5px;
+    line-height: 1.55;
+    border: 1px solid #1f2a44;
+  }
+  code.inline {
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    color: var(--ink);
+  }
+  pre .c { color: #6b7891; font-style: italic; }
+  pre .k { color: #c084fc; }
+  pre .s { color: #86efac; }
+  pre .n { color: #fde68a; }
+  pre .v { color: #93c5fd; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 14px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 560px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink-2);
+  }
+  th {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface-2);
+  }
+  td.mono, th.mono {
+    font-family: "JetBrainsMonoLocal", monospace;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Service pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 18px 0 4px;
+  }
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--cyan);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .step.violet { border-left-color: var(--violet); }
+  .step.amber { border-left-color: var(--amber); }
+  .step.emerald { border-left-color: var(--emerald); }
+  .step h4 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: var(--ink);
+    font-family: "SpaceGroteskLocal", sans-serif;
+  }
+  .step p { font-size: 12px; color: var(--ink-3); margin: 0; line-height: 1.45; }
+
+  /* Q&A */
+  .qa {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+  }
+  .qa .q {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+    font-family: "SpaceGroteskLocal", sans-serif;
+  }
+  .qa .q::before {
+    content: "Q";
+    flex: 0 0 24px;
+    height: 24px;
+    width: 24px;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: #fff;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "JetBrainsMonoLocal", monospace;
+  }
+  .qa .a {
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.6;
+    border-left: 2px solid var(--rule-soft);
+    padding-left: 14px;
+    margin-left: 4px;
+  }
+  .qa .a b { color: var(--ink); }
+
+  /* Footer */
+  .foot {
+    margin-top: 70px;
+    padding-top: 22px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-4);
+    font-size: 12px;
+    text-align: center;
+    font-family: "JetBrainsMonoLocal", monospace;
+    letter-spacing: 0.08em;
+  }
+
+  /* Print: aim for clean PDF output */
+  @media print {
+    body { background: #fff; color: #000; }
+    .wrap { max-width: none; padding: 0; }
+    .cover, .toc, .card, .qa, pre, table th, table td { break-inside: avoid; }
+    section { break-inside: avoid-page; }
+    .sec-rule, .toc a { break-after: avoid; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="cover">
+    <div class="eyebrow">PRFlow Intelligence · Project Reference</div>
+    <h1 class="title">Pull Request Chaos, Made Auditable.</h1>
+    <p class="subtitle">
+      A self-hosted GitHub engineering intelligence platform that scores,
+      ranks, and explains the risk hiding in your pull-request queue — built end-to-end
+      with FastAPI, PostgreSQL, React, and the GitHub REST API.
+    </p>
+    <div class="meta">
+      <span><b>Type</b> Full-stack web application</span>
+      <span><b>Stack</b> FastAPI · React 18 · PostgreSQL · APScheduler · ReactFlow</span>
+      <span><b>Source of truth</b> GitHub REST API + DB cache</span>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#what"><span class="num">01</span>What it does</a></li>
+      <li><a href="#arch"><span class="num">02</span>Architecture</a></li>
+      <li><a href="#backend"><span class="num">03</span>Backend layers</a></li>
+      <li><a href="#priority"><span class="num">04</span>Priority engine</a></li>
+      <li><a href="#sync"><span class="num">05</span>Sync pipeline</a></li>
+      <li><a href="#alerts"><span class="num">06</span>Alerts &amp; reviewer load</a></li>
+      <li><a href="#dep"><span class="num">07</span>Dependency graph</a></li>
+      <li><a href="#fe"><span class="num">08</span>Frontend</a></li>
+      <li><a href="#auth"><span class="num">09</span>Auth &amp; OAuth</a></li>
+      <li><a href="#libs"><span class="num">10</span>Libraries used</a></li>
+      <li><a href="#qa"><span class="num">11</span>Interview Q&amp;A</a></li>
+      <li><a href="#notes"><span class="num">12</span>Notes &amp; additions</a></li>
+    </ol>
+  </nav>
+
+  <!-- 01 -->
+  <section id="what">
+    <div class="sec-eyebrow">01 · Product</div>
+    <h2 class="sec">What it does</h2>
+    <div class="sec-rule"></div>
+    <p>
+      PRFlow watches the repositories a user has connected, pulls every pull request
+      from GitHub on a schedule, and turns the resulting pile into a prioritized,
+      explainable work list. The system solves a very specific problem:
+      <strong>engineering teams that have more open PRs than reviewers can comfortably
+      handle, and no way to tell which one is going to bite them first.</strong>
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <span class="pill cyan">Scoring</span>
+        <h3>Priority Engine</h3>
+        <p>Every PR is scored across 8 signals (age, reviewers, conflicts, CI, blockers, labels) and bucketed into Low / Medium / High / Critical.</p>
+      </div>
+      <div class="card">
+        <span class="pill violet">Graph</span>
+        <h3>Dependency Graph</h3>
+        <p>Auto-extracts "depends on #N" / "blocked by #N" / "requires #N" from PR bodies and renders the chain visually with ReactFlow.</p>
+      </div>
+      <div class="card">
+        <span class="pill amber">Load</span>
+        <h3>Reviewer Workload</h3>
+        <p>Counts currently-requested reviews per reviewer, computes load vs. capacity, and flags overload.</p>
+      </div>
+      <div class="card">
+        <span class="pill rose">Alerts</span>
+        <h3>Proactive Alerts</h3>
+        <p>Critical PRs, merge conflicts, blocked dependencies, and reviewer overload become dismissible alerts. Stale alerts auto-clear when the condition resolves.</p>
+      </div>
+      <div class="card">
+        <span class="pill emerald">Analytics</span>
+        <h3>Engineering Trends</h3>
+        <p>Weekly aggregates of review time, merge time, PR volume, and bottleneck frequency for 2W / 4W / 6W / 3M windows.</p>
+      </div>
+      <div class="card">
+        <span class="pill cyan">Auth</span>
+        <h3>GitHub OAuth + JWT</h3>
+        <p>Email/password OR GitHub OAuth. The OAuth token is persisted per user so private repos sync correctly without exposing it to the browser.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section id="arch">
+    <div class="sec-eyebrow">02 · Architecture</div>
+    <h2 class="sec">Architecture</h2>
+    <div class="sec-rule"></div>
+    <p>
+      A clean two-process setup: <strong>Vite + React 18</strong> on the front, <strong>FastAPI</strong>
+      behind it talking to <strong>PostgreSQL</strong>. A background scheduler
+      (<code class="inline">APScheduler</code>) ticks every <code class="inline">SYNC_INTERVAL_MINUTES</code>
+      and pulls fresh data from the GitHub REST API into the database. The UI
+      never hits GitHub directly — it always reads from the DB through REST endpoints.
+    </p>
+
+    <div class="pipeline">
+      <div class="step"><h4>Browser</h4><p>React 18 + Vite, React Router 7, ReactFlow, Framer Motion, Three.js (3D backgrounds).</p></div>
+      <div class="step violet"><h4>REST API</h4><p>FastAPI routers per resource. JWT bearer auth, CORS open in dev, error-handled.</p></div>
+      <div class="step amber"><h4>Services</h4><p>SyncService · PriorityService · ReviewerService · AnalyticsService · AlertService · GitHubService.</p></div>
+      <div class="step emerald"><h4>Scheduler</h4><p>APScheduler background job. Per-repo isolation, rate-limit aware, non-fatal failures.</p></div>
+    </div>
+
+    <p>
+      Notable design choice: the <strong>DB is the source of truth for the UI</strong>.
+      GitHub is treated as an upstream data source whose values are pulled on a cadence
+      and stored locally. This means the dashboard, the dependency graph, and the
+      analytics charts are all read-only DB queries — no per-request GitHub hammering.
+    </p>
+  </section>
+
+  <!-- 03 -->
+  <section id="backend">
+    <div class="sec-eyebrow">03 · Backend</div>
+    <h2 class="sec">Backend layers</h2>
+    <div class="sec-rule"></div>
+    <p>The backend is structured by responsibility. Each folder has one job:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Folder</th><th>Job</th></tr></thead>
+        <tbody>
+          <tr><td>Entry point</td><td class="mono">app/main.py</td><td>FastAPI app, CORS, lifespan, router include, scheduler bootstrap, GitHub token validation on boot.</td></tr>
+          <tr><td>HTTP routes</td><td class="mono">app/routes/</td><td>Thin handlers per resource (auth, prs, repos, reviewers, deps, alerts, analytics, bottlenecks, settings, github_oauth).</td></tr>
+          <tr><td>Business logic</td><td class="mono">app/services/</td><td>Service classes that own DB sessions and orchestrate analyzers + models.</td></tr>
+          <tr><td>Pure logic</td><td class="mono">app/analyzers/</td><td>Stateless functions: priority engine, dependency extraction, reviewer workload, bottleneck, health.</td></tr>
+          <tr><td>Persistence</td><td class="mono">app/models/</td><td>SQLAlchemy ORM: User, Repository, PullRequest, Reviewer, PRReviewer, PRReview, Dependency, Alert.</td></tr>
+          <tr><td>Validation</td><td class="mono">app/schemas/</td><td>Pydantic request/response models.</td></tr>
+          <tr><td>Background</td><td class="mono">app/scheduler/</td><td>APScheduler job that calls <code class="inline">full_sync()</code>.</td></tr>
+          <tr><td>Config</td><td class="mono">app/config/</td><td><code class="inline">pydantic-settings</code> loading from <code class="inline">.env</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Worth flagging in an interview: <strong>routes are thin, services hold the logic, analyzers are pure</strong>.
+    That separation is what lets the priority engine be unit-tested without touching the DB.</p>
+  </section>
+
+  <!-- 04 -->
+  <section id="priority">
+    <div class="sec-eyebrow">04 · Priority engine</div>
+    <h2 class="sec">Priority engine</h2>
+    <div class="sec-rule"></div>
+    <p>
+      The priority engine is the heart of the product. It is implemented in
+      <code class="inline">app/analyzers/priority_engine.py</code> as a pure function:
+      <code class="inline">calculate_priority(pr_data) → {score, level, breakdown}</code>.
+      Eight signals are summed, then bucketed.
+    </p>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:18px 0 8px;">The eight scoring factors</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Factor</th><th>Source</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td><b>Age</b></td><td class="mono">PR.created_at</td><td>Stale PRs are technical debt in disguise.</td></tr>
+          <tr><td><b>Pending reviews</b></td><td class="mono">PRReviewer rows</td><td>More pending reviewers = more coordination cost = more likely to stall.</td></tr>
+          <tr><td><b>Merge conflict</b></td><td class="mono">pr.mergeable == false</td><td>Author must rebase; PR is effectively dead until they do.</td></tr>
+          <tr><td><b>Failing CI</b></td><td class="mono">per-SHA check API</td><td>Reviewers ignore red PRs; merge risk goes up.</td></tr>
+          <tr><td><b>Is blocking</b></td><td class="mono">reversed Dependency rows</td><td>If other PRs depend on this one, every day it doesn't merge blocks more work.</td></tr>
+          <tr><td><b>Urgent label</b></td><td class="mono">label == "urgent"</td><td>Human-asserted priority signal.</td></tr>
+          <tr><td><b>Bug label</b></td><td class="mono">label == "bug"</td><td>Production-shape risk.</td></tr>
+          <tr><td><b>Security label</b></td><td class="mono">label == "security"</td><td>Highest class of risk; weighted higher than bug.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The final score is bucketed using <code class="inline">LOW_THRESHOLD / MEDIUM_THRESHOLD / HIGH_THRESHOLD</code>
+      constants into <b>Low / Medium / High / Critical</b>. The breakdown is returned alongside the score
+      so the UI can show <i>why</i> a PR is critical — not just that it is.
+    </p>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:22px 0 8px;">Interview view — how the engine works end-to-end</h3>
+    <ol>
+      <li><b>SyncService</b> fetches PRs from GitHub and enriches them with three signals GitHub's PR-list endpoint doesn't return inline: <code class="inline">pending_reviews</code>, <code class="inline">failing_checks</code>, <code class="inline">is_blocking</code>.</li>
+      <li><b>PriorityService</b> calls <code class="inline">calculate_priority</code> on each enriched PR.</li>
+      <li>Score, level, and per-factor breakdown are written to the <code class="inline">pull_requests</code> row alongside the raw PR data.</li>
+      <li><b>AlertService</b> then looks at every <code class="inline">Critical</code> PR and creates a "critical_pr" alert — but only if one doesn't already exist for that PR.</li>
+    </ol>
+  </section>
+
+  <!-- 05 -->
+  <section id="sync">
+    <div class="sec-eyebrow">05 · Sync pipeline</div>
+    <h2 class="sec">Sync pipeline</h2>
+    <div class="sec-rule"></div>
+    <p>
+      The <code class="inline">SyncService</code> is the most important service in the codebase.
+      It runs once on startup (in a background thread so the API comes up fast) and then on a
+      timer. Each iteration:
+    </p>
+
+    <div class="pipeline">
+      <div class="step"><h4>1. List repos</h4><p>Pulls every repo the user has explicitly added. Per-user scoping (no fan-out from a global token).</p></div>
+      <div class="step violet"><h4>2. Fetch PRs</h4><p>Per-repo, with the user's OAuth token if available — falls back to the server-wide token. Paginates up to 5 × 100 = 500 PRs.</p></div>
+      <div class="step amber"><h4>3. Enrich</h4><p>Adds pending_reviews, failing_checks, is_blocking so the priority engine has real signals.</p></div>
+      <div class="step emerald"><h4>4. Score</h4><p>Runs the priority engine on every PR. Stores score, level, and breakdown.</p></div>
+      <div class="step"><h4>5. Upsert</h4><p>Creates or updates each PR row. Marks status="merged" if GitHub says merged_at is set, else "open"/"closed".</p></div>
+      <div class="step violet"><h4>6. Dependencies</h4><p>Scans PR bodies for "depends on #N / blocked by #N / requires #N" regex and creates Dependency rows.</p></div>
+      <div class="step amber"><h4>7. Reviewers</h4><p>Creates Reviewer + PRReviewer link rows from <code class="inline">requested_reviewers</code>. Marks stale "requested" links as "reviewed".</p></div>
+      <div class="step emerald"><h4>8. Reviews</h4><p>For open PRs only, pulls the actual review history to compute <code class="inline">first_review_at</code> and power the timeline.</p></div>
+    </div>
+
+    <p>
+      Failure isolation: one repo failing (bad token, 404, rate-limit on that endpoint) does
+      not stop the others. A global rate-limit on the auth token, however, halts the whole batch
+      so we don't burn 30 minutes logging the same 403 for every subsequent repo.
+    </p>
+  </section>
+
+  <!-- 06 -->
+  <section id="alerts">
+    <div class="sec-eyebrow">06 · Alerts &amp; reviewer load</div>
+    <h2 class="sec">Alerts &amp; reviewer workload</h2>
+    <div class="sec-rule"></div>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:0 0 8px;">Four alert types, idempotent regeneration</h3>
+    <ul>
+      <li><b>critical_pr</b> — priority_level == "Critical" and not merged/closed.</li>
+      <li><b>merge_conflict</b> — merge_conflict == True and not merged/closed.</li>
+      <li><b>blocked_dependency</b> — has a Dependency pointing <i>into</i> it whose source is still open.</li>
+      <li><b>reviewer_overload</b> — load_percent &gt; 100% (active PRs &gt; reviewer.capacity).</li>
+    </ul>
+    <p>
+      Each generator first looks for an open alert of the same type for the same
+      PR/reviewer; if found, it skips. At the end it deletes any alert whose underlying
+      condition no longer holds. Net effect: alerts self-clear the moment the condition
+      goes away — no manual "dismiss" required, and no duplicates pile up across syncs.
+    </p>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:18px 0 8px;">Reviewer workload formula</h3>
+    <p>
+      For each reviewer that has any currently-requested PR in this user's repos:
+    </p>
+<pre><span class="c"># app/analyzers/reviewer_analyzer.py</span>
+active_count   = len(assigned_prs)     <span class="c"># real current request list</span>
+capacity       = reviewer.capacity or 1
+load_percent   = round((active_count / capacity) * 100)
+
+status = "overloaded"  if load_percent &gt;  100
+       = "busy"        if load_percent &gt;= 70
+       = "available"   otherwise</pre>
+    <p>Reviewers are sorted by load descending, so the most-buried are always at the top of the table.</p>
+  </section>
+
+  <!-- 07 -->
+  <section id="dep">
+    <div class="sec-eyebrow">07 · Dependency graph</div>
+    <h2 class="sec">Dependency graph</h2>
+    <div class="sec-rule"></div>
+    <p>
+      The dependency graph is the most distinctive UI in the app. It is built
+      server-side by <code class="inline">DependencyGraphService</code> and returned in
+      the exact shape <strong>reactflow</strong> expects.
+    </p>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:0 0 8px;">How edges get discovered</h3>
+    <p>
+      During sync, every PR body is scanned with a regex:
+    </p>
+<pre>regex: (?:depends on|blocked by|requires)\s*#(\d+)</pre>
+    <p>
+      If PR #42's body contains "Depends on #15", we create a Dependency where
+      <code class="inline">source_pr_id = 15</code> (must merge first) and
+      <code class="inline">target_pr_id = 42</code> (is blocked). The graph is
+      therefore drawn left-to-right: prerequisites on the left, blocked PRs to their right.
+    </p>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:18px 0 8px;">Layout: levels via longest path</h3>
+<pre><span class="c"># app/services/dependency_graph_service.py</span>
+level(pr) = 0                          <span class="c"># no incoming deps</span>
+level(pr) = 1 + max(level(p) for p in incoming(pr))   <span class="c"># otherwise</span></pre>
+    <p>
+      Cycles are guarded against with a recursion set. Nodes are color-coded by priority
+      level (Critical amber, High blue, Medium violet, Low green). Edges animate while
+      the upstream PR is unmerged.
+    </p>
+  </section>
+
+  <!-- 08 -->
+  <section id="fe">
+    <div class="sec-eyebrow">08 · Frontend</div>
+    <h2 class="sec">Frontend</h2>
+    <div class="sec-rule"></div>
+    <p>
+      React 18 + Vite, with React Router 7 handling routing. The whole app lives in
+      <code class="inline">AppContext</code> — a single context provider that owns the user
+      session, the list of repos, the list of alerts, and a toast dispatcher.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Page</th><th>Job</th></tr></thead>
+        <tbody>
+          <tr><td><b>Dashboard</b></td><td>Headline KPIs: open PRs, critical PRs, average review time, top reviewers, recent alerts.</td></tr>
+          <tr><td><b>PullRequests</b></td><td>Filterable PR table with priority chip, status, age, and click-through to detail.</td></tr>
+          <tr><td><b>PRDetails</b></td><td>Per-PR view: breakdown of why it's at its priority level, reviewer list, activity timeline.</td></tr>
+          <tr><td><b>DependencyGraph</b></td><td>reactflow canvas with custom PR nodes, color-coded by priority.</td></tr>
+          <tr><td><b>ReviewerAnalytics</b></td><td>Workload table with overloaded / busy / available pill, capacity editor.</td></tr>
+          <tr><td><b>EngineeringAnalytics</b></td><td>Weekly trend charts (review time, merge time, volume, bottlenecks) for 2W/4W/6W/3M.</td></tr>
+          <tr><td><b>Repositories</b></td><td>Add/remove repos; add triggers a server-side immediate sync.</td></tr>
+          <tr><td><b>Alerts</b></td><td>Alert feed, mark single / mark-all-read.</td></tr>
+          <tr><td><b>Settings &amp; Profile</b></td><td>Account, GitHub connection, per-user settings.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The visual identity leans on a custom <strong>"cartoon theme"</strong>
+      (comic-style borders, neon accents, glow effects) implemented in
+      <code class="inline">src/cartoon-theme.css</code>. The 3D landing background
+      uses <strong>Three.js via @react-three/fiber</strong>.
+    </p>
+  </section>
+
+  <!-- 09 -->
+  <section id="auth">
+    <div class="sec-eyebrow">09 · Auth &amp; OAuth</div>
+    <h2 class="sec">Auth &amp; OAuth</h2>
+    <div class="sec-rule"></div>
+    <p>Two ways in:</p>
+    <ul>
+      <li><b>Email / password</b> — bcrypt-hashed via <code class="inline">passlib</code>, JWT issued via <code class="inline">python-jose</code>, stored in <code class="inline">localStorage</code> on the client and sent as a Bearer token on every request.</li>
+      <li><b>GitHub OAuth</b> — full <code class="inline">authorize → callback</code> flow, with the <code class="inline">state</code> parameter signed into a cookie via <code class="inline">itsdangerous</code>-backed <code class="inline">SessionMiddleware</code>. The returned access token is stored on the User row and used as a per-user fallback when the server-wide token can't see the repo.</li>
+    </ul>
+    <p>
+      A single 401 from any endpoint is enough to drop the user cleanly to the
+      unauthorized page — handled by a global handler installed in
+      <code class="inline">AppContext</code> and triggered from the central
+      <code class="inline">apiRequest</code> wrapper.
+    </p>
+  </section>
+
+  <!-- 10 -->
+  <section id="libs">
+    <div class="sec-eyebrow">10 · Libraries used</div>
+    <h2 class="sec">Libraries &amp; tech stack</h2>
+    <div class="sec-rule"></div>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:0 0 8px;">Backend (Python)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Library</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">fastapi</td><td>HTTP framework, OpenAPI, dependency injection.</td></tr>
+          <tr><td class="mono">uvicorn[standard]</td><td>ASGI server with WebSocket/HTTP/2 extras.</td></tr>
+          <tr><td class="mono">sqlalchemy</td><td>ORM and session management.</td></tr>
+          <tr><td class="mono">psycopg2-binary</td><td>PostgreSQL driver.</td></tr>
+          <tr><td class="mono">pydantic</td><td>Request/response validation.</td></tr>
+          <tr><td class="mono">pydantic-settings</td><td>Config from environment variables.</td></tr>
+          <tr><td class="mono">python-dotenv</td><td>Loads <code class="inline">.env</code> automatically.</td></tr>
+          <tr><td class="mono">requests</td><td>GitHub REST client.</td></tr>
+          <tr><td class="mono">networkx</td><td>Graph analysis (available for cycle/path work).</td></tr>
+          <tr><td class="mono">apscheduler</td><td>Background <code class="inline">full_sync</code> on interval.</td></tr>
+          <tr><td class="mono">python-dateutil</td><td>ISO 8601 parsing for GitHub timestamps.</td></tr>
+          <tr><td class="mono">passlib[bcrypt] / bcrypt</td><td>Password hashing.</td></tr>
+          <tr><td class="mono">python-jose[cryptography]</td><td>JWT signing &amp; verification.</td></tr>
+          <tr><td class="mono">itsdangerous</td><td>Signed cookies for OAuth <code class="inline">state</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-family:'SpaceGroteskLocal',sans-serif; font-size:16px; margin:22px 0 8px;">Frontend (JavaScript)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Library</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">react / react-dom 18</td><td>UI runtime.</td></tr>
+          <tr><td class="mono">react-router-dom 7</td><td>Routing, nested layouts, protected routes.</td></tr>
+          <tr><td class="mono">vite 5</td><td>Dev server and production bundler.</td></tr>
+          <tr><td class="mono">reactflow 11</td><td>Dependency graph canvas with custom node types.</td></tr>
+          <tr><td class="mono">three / @react-three/fiber / @react-three/drei</td><td>3D landing background.</td></tr>
+          <tr><td class="mono">framer-motion</td><td>Page transitions &amp; micro-interactions.</td></tr>
+          <tr><td class="mono">gsap / @gsap/react</td><td>Scroll-driven and sequenced animation.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section id="qa">
+    <div class="sec-eyebrow">11 · Interview Q&amp;A</div>
+    <h2 class="sec">Likely interview questions</h2>
+    <div class="sec-rule"></div>
+    <p>Twenty-two questions ordered roughly easy → harder, with concise answers you'd actually say in an interview.</p>
+
+    <div class="qa">
+      <div class="q">What does PRFlow actually do? Who is it for?</div>
+      <div class="a">A self-hosted engineering intelligence layer on top of GitHub. It pulls PRs, scores them with a priority engine, shows reviewer workload and dependency chains, and surfaces alerts. Target user: a tech lead or staff engineer trying to triage a backlog of open PRs across multiple repos.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Walk me through the architecture.</div>
+      <div class="a">React 18 + Vite frontend talking to a FastAPI backend. Backend uses SQLAlchemy against PostgreSQL. An APScheduler background job runs <code class="inline">SyncService.full_sync</code> on a fixed interval, pulls data from GitHub into the DB, and the UI reads only from the DB. CORS is open in dev, JWT bearer auth protects the app routes, and per-user GitHub OAuth tokens are stored for private repo access.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How is the priority score calculated?</div>
+      <div class="a">Sum of weighted signals: age of PR, count of pending reviewers, merge conflict, failing CI, whether the PR is blocking other PRs, and the presence of "urgent", "bug", or "security" labels. The total is bucketed into Low / Medium / High / Critical via threshold constants in <code class="inline">app/constants/priority_rules.py</code>. Each factor is returned in a breakdown list so the UI can show "why".</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Why is the priority engine a pure function?</div>
+      <div class="a">So it's testable without the DB. <code class="inline">calculate_priority(pr_dict) → {score, level, breakdown}</code> only depends on its input. That makes it trivial to unit test edge cases (10-day-old PR, three pending reviewers, security label, etc.) by feeding in dicts.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How are dependencies between PRs discovered?</div>
+      <div class="a">A regex over each PR body for "depends on #N", "blocked by #N", or "requires #N". If a body contains "Depends on #15", a Dependency row is created with <code class="inline">source_pr_id = 15</code> (must merge first) and <code class="inline">target_pr_id = current</code> (is blocked). The graph service then computes longest-path levels for left-to-right layout and guards against cycles via a recursion set.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">What happens if the GitHub API rate-limits you mid-sync?</div>
+      <div class="a">The service catches <code class="inline">GitHubRateLimitError</code> per repository. A rate limit on a single endpoint (e.g. fetching CI checks) stops processing only for that repo. A rate limit that affects the whole token (e.g. listing PRs) halts the whole batch — otherwise every subsequent repo would log the same 403 and burn the rest of the window.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Why store data in a DB at all? Why not just call GitHub live?</div>
+      <div class="a">Three reasons: (1) rate limits — the GitHub REST API caps at 5,000 req/h for an authenticated user, and we can hit that with a handful of repos. (2) Latency — analytics pages aggregate over weeks of data; computing that on every page load is wasteful. (3) The dependency graph and reviewer workload need to combine data from many PRs and reviewers in a single query. Caching the upstream and querying locally is faster and cheaper.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How is the DB kept fresh?</div>
+      <div class="a">APScheduler runs <code class="inline">full_sync</code> on a fixed interval (configurable via <code class="inline">SYNC_INTERVAL_MINUTES</code>). One full sweep on startup in a background thread so the API can serve traffic immediately. Each PR is upserted — existing rows are updated, new ones are created, and the merge/closed state is normalized from GitHub's <code class="inline">state</code> + <code class="inline">merged_at</code>.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Explain the alert system.</div>
+      <div class="a">Four generators: critical PRs, merge conflicts, blocked dependencies, reviewer overload. Each generator is idempotent — it won't duplicate an alert for a condition that's already flagged, and at the end of each run it deletes any alert whose condition no longer holds. Net effect: alerts self-clear as the underlying problem resolves, no manual "dismiss" needed.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How is reviewer workload computed?</div>
+      <div class="a">For each reviewer with at least one currently-requested PR in this user's repos, count the active PRs and divide by the reviewer's configured capacity. <code class="inline">load_percent &gt; 100%</code> is overloaded, <code class="inline">≥ 70%</code> is busy, otherwise available. The result is sorted by load descending so the most buried appear first.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How does auth work?</div>
+      <div class="a">Two paths. Email/password: bcrypt-hashed, JWT issued via <code class="inline">python-jose</code>, stored in <code class="inline">localStorage</code> on the client, sent as a Bearer token. GitHub OAuth: full authorize → callback, the <code class="inline">state</code> param signed into a cookie via <code class="inline">itsdangerous</code>, the returned access token saved on the User row for per-user syncing of private repos. A single 401 from any API call drops the user to the unauthorized page via a global handler.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">What is the "depends on" / "blocked by" / "requires" regex?</div>
+      <div class="a"><code class="inline">(?:depends on|blocked by|requires)\s*#(\d+)</code>, case-insensitive. It matches phrases like "depends on #15", "Blocked by #27", "requires #9", and captures the PR number. Anything else (e.g. "depends on branch foo") is ignored.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Why do you enrich the PRs before scoring?</div>
+      <div class="a">GitHub's PR-list endpoint returns <code class="inline">requested_reviewers</code> inline but doesn't return CI status or the blocking status. Without enrichment, three of the eight priority factors would always be zero and the engine would systematically underestimate risk. So before scoring we (a) count <code class="inline">requested_reviewers</code>, (b) call the checks API per open PR's head SHA, and (c) scan the body text for "depends on #N" to mark the referenced PR as <code class="inline">is_blocking</code>.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How are stale "requested" reviewer links handled?</div>
+      <div class="a">After each sync, we compare the GitHub-returned <code class="inline">requested_reviewers</code> set for that PR to what's stored. Any stored link that isn't in the current set is presumed to have already reviewed and is updated from "requested" to "reviewed". This keeps <code class="inline">Reviewer.pending_reviews</code> accurate without an explicit "I just reviewed" event.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Why ReactFlow for the dependency graph?</div>
+      <div class="a">It's the standard React library for node-edge visualizations with built-in pan/zoom, mini-map, and custom node types. The backend already returns data in reactflow's <code class="inline">{ nodes, edges }</code> shape, so the frontend just maps it. Custom node components render the PR number, title, priority chip, and status with priority-driven colors.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How would you scale this to 10,000 PRs per repo?</div>
+      <div class="a">Several answers: (1) the sync already caps at 5 pages × 100 = 500 PRs per repo, so the first change is raising that cap and adding incremental sync by <code class="inline">updated_at</code>. (2) Move heavy aggregations to materialized views or a dedicated analytics schema. (3) Pre-compute priority and reviewer workload in the background rather than on read. (4) Cache dependency graph layouts. (5) The priority engine itself is O(n) per PR so it scales linearly — no algorithmic change needed.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">What would you do differently if you started over?</div>
+      <div class="a">A few honest answers: introduce Celery or a real queue (RQ / Arq) instead of APScheduler for background work, so jobs survive restarts and are observable. Add an OpenTelemetry exporter for the GitHub HTTP client so we can see per-call latency. Make the priority engine configurable per-org (different teams weight things differently). And add a small admin tool for replaying one repo's sync with verbose logs — invaluable when triaging "why is this PR not showing up?"</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">What security considerations did you handle?</div>
+      <div class="a">Passwords are bcrypt-hashed, never stored plaintext. JWTs are signed and stored client-side; a single 401 globally logs the user out. GitHub OAuth <code class="inline">state</code> is signed via <code class="inline">itsdangerous</code> to prevent CSRF. Per-user access tokens are stored server-side and never returned in API responses. CORS is locked down in production (it's only wide-open in dev). SQL is parameterized via SQLAlchemy ORM so there's no string-injection risk. <code class="inline">password_hash</code> and <code class="inline">github_access_token</code> are explicit fields on the User model and should be excluded from any public schema.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Why FastAPI instead of Flask or Django?</div>
+      <div class="a">FastAPI gives us Pydantic-validated request/response models for free, async handlers when we need them, automatic OpenAPI docs (handy for the frontend team), and clean dependency injection for the DB session. Django would have been heavier than needed for what's basically a thin REST + scheduler. Flask is fine but I'd be reimplementing half of what FastAPI ships with.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How is the data model related?</div>
+      <div class="a"><b>User</b> has many <b>Repositories</b>. Each Repository has many <b>PullRequests</b>. PR ↔ Reviewer is many-to-many through <b>PRReviewer</b> (with a status). <b>PRReview</b> stores the actual submitted review (one row per submitted review, with timestamp). <b>Dependency</b> is a self-relation on PR via <code class="inline">source_pr_id</code> / <code class="inline">target_pr_id</code>. <b>Alert</b> belongs to User and optionally to a PR or Reviewer.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">What does the dependency graph layout algorithm do?</div>
+      <div class="a">It assigns each PR a "level" = length of the longest chain of dependencies leading into it. A PR with no prerequisites is level 0; a PR whose prerequisites are themselves level 0 is level 1; and so on. Nodes are placed at <code class="inline">x = level * 260</code> and stacked down the y axis, producing a left-to-right DAG. A recursion set guards against cycles, which would otherwise loop forever.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">How do you test this?</div>
+      <div class="a">The analyzers are pure functions — directly unit-testable. Services are tested by injecting a SQLAlchemy session against a SQLite or test PostgreSQL. The GitHub client is mocked at the <code class="inline">requests</code> boundary in <code class="inline">tests/</code>. The priority engine has a dedicated <code class="inline">SyncService_test.py</code>-style fixture pattern; full repo-level integration is exercised via the FastAPI app with the dependency overrides swapped out.</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">What is the hardest bug you've had to chase in this project?</div>
+      <div class="a">A good answer would be the priority engine systematically under-reporting risk: scores were "always low" because the engine was being fed PRs that hadn't been enriched with <code class="inline">pending_reviews</code>, <code class="inline">failing_checks</code>, and <code class="inline">is_blocking</code> — three factors the GitHub PR-list endpoint doesn't return. Fix was to enrich before scoring, not after. Worth mentioning because it's a great example of "the bug is in the orchestration order, not the logic".</div>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section id="notes">
+    <div class="sec-eyebrow">12 · Additions</div>
+    <h2 class="sec">Things worth adding that aren't here yet</h2>
+    <div class="sec-rule"></div>
+    <p>From my own read of the codebase, a few pieces are missing or worth strengthening before shipping this to more than one team:</p>
+    <ul>
+      <li><b>Real-time updates.</b> Everything is poll-based via APScheduler. Adding a webhook receiver for GitHub's <code class="inline">pull_request</code> and <code class="inline">pull_request_review</code> events would let scores refresh instantly when a label is added, a review is submitted, or a PR is merged.</li>
+      <li><b>Queue-backed sync.</b> APScheduler runs the job in-process; a restart drops in-flight work. A proper queue (Celery, RQ, or even just an outbox table polled by a worker) would be more durable.</li>
+      <li><b>Multi-tenant RBAC.</b> Repositories are scoped to a user, but a team shared workspace with role-based read/write would unlock org-level adoption.</li>
+      <li><b>Slack / email notifications for high-priority alerts.</b> Right now alerts only show in the app. Pushing them to a channel the team already watches is a 10× unlock.</li>
+      <li><b>Configurable priority weights.</b> The constants in <code class="inline">priority_rules.py</code> are global. Surfacing them in Settings per-user or per-org would let teams tune "security label is +50 here, +200 there".</li>
+      <li><b>Per-PR activity timeline.</b> The reviews are stored, and <code class="inline">first_review_at</code> is computed, but a true timeline (commits, comments, label changes, reviews) would be a great add for the PR detail page.</li>
+      <li><b>Test coverage report.</b> <code class="inline">backend/app/tests/</code> exists; running pytest with <code class="inline">--cov</code> and wiring it into CI would close a soft spot.</li>
+      <li><b>Observability.</b> Adding <code class="inline">prometheus_client</code> middleware and shipping request latency + GitHub-call counters would make production debugging much easier.</li>
+      <li><b>Configurable dependency keywords per repo.</b> Some teams say "needs", "after", "part of #N". The current regex would need light tuning to match their conventions.</li>
+      <li><b>CI status for non-GitHub-Actions check runs.</b> The checks API only covers GitHub-Actions-style status checks; external CI (CircleCI, Buildkite) needs the <code class="inline">check-runs</code> endpoint for full coverage.</li>
+    </ul>
+  </section>
+
+  <div class="foot">PRFLOW INTELLIGENCE · PROJECT REFERENCE · 2026-08-17</div>
+
+</div>

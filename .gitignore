@@ -2,7 +2,8 @@
 .env
 *.env
 backend/.env
-backend/.env.example
+*.pem
+*.key
 
 # Node
 node_modules/
@@ -31,3 +32,10 @@ vite.log
 .DS_Store
 .vscode/
 .idea/
+
+# Database dumps & local sqlite
+*.sql
+prflow.sql
+*.db
+*.sqlite
+*.sqlite3

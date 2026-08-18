@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import DashboardHeader from '../../components/shared/DashboardHeader'
+import { AlertTriangleIcon, CheckCircleIcon } from '../../components/shared/Icons'
 import { useApp } from '../../store/AppContext'
+
 
 const TABS = [
   {
@@ -190,9 +192,11 @@ export default function Settings() {
                         Fine-tune heuristic coefficients that determine automated PR urgency rankings.
                       </p>
                     </div>
-                    <span className="glow-pill" style={{ background: totalOk ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)', color: totalOk ? '#34d399' : '#fbbf24', border: `1px solid ${totalOk ? 'rgba(52,211,153,0.3)' : 'rgba(251,191,36,0.3)'}` }}>
-                      Sum: {totalWeight}% {totalOk ? '✓ Target Met' : '⚠️ Must sum to 100%'}
+                    <span className="glow-pill" style={{ background: totalOk ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)', color: totalOk ? '#34d399' : '#fbbf24', border: `1px solid ${totalOk ? 'rgba(52,211,153,0.3)' : 'rgba(251,191,36,0.3)'}`, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      {totalOk ? <CheckCircleIcon size={12} color="#34d399" /> : <AlertTriangleIcon size={12} color="#fbbf24" />}
+                      <span>Sum: {totalWeight}% {totalOk ? 'Target Met' : 'Must sum to 100%'}</span>
                     </span>
+
                   </div>
 
                   <WeightSlider label="Dependency Depth & Blocker Impact" desc="Weights pull requests that unblock other engineers or downstream production releases." value={weights.dependencyDepth} onChange={v => handleWeightChange('dependencyDepth', v)} totalWeight={totalWeight} />
