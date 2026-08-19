@@ -7,6 +7,7 @@ from app.models.pull_request import PullRequest
 from app.models.reviewer import Reviewer
 from app.models.pr_reviewer import PRReviewer
 from app.models.alert import Alert
+from app.models.dependency import Dependency
 from app.models.user import User
 from app.services.github_service import GitHubService
 from app.services.github_exceptions import (
@@ -215,6 +216,13 @@ class RepositoryService:
                 )
 
             full_name = db_repo.full_name
+
+            pr_ids = [p.id for p in db_repo.pull_requests]
+            if pr_ids:
+                db.query(Alert).filter(Alert.pull_request_id.in_(pr_ids)).delete(synchronize_session=False)
+                db.query(Dependency).filter(
+                    (Dependency.source_pr_id.in_(pr_ids)) | (Dependency.target_pr_id.in_(pr_ids))
+                ).delete(synchronize_session=False)
 
             db.delete(db_repo)
             db.commit()

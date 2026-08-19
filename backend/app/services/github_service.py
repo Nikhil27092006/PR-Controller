@@ -267,3 +267,29 @@ class GitHubService:
         )
 
         return response.json()
+
+    def fetch_pull_request_checks(
+        self,
+        owner: str,
+        repo: str,
+        sha: str
+    ) -> dict:
+        """
+        Fetches combined status checks for a commit SHA.
+        Returns {"failing": bool, "state": str, "total_count": int}.
+        """
+        url = f"{self.BASE_URL}/repos/{owner}/{repo}/commits/{sha}/status"
+        try:
+            response = self._request("GET", url)
+            data = response.json()
+            state = data.get("state", "success")
+            return {
+                "failing": state in ("failure", "error"),
+                "state": state,
+                "total_count": data.get("total_count", 0)
+            }
+        except (GitHubRateLimitError, GitHubAuthError):
+            raise
+        except Exception as exc:
+            logger.warning("Failed fetching status checks for %s/%s@%s: %s", owner, repo, sha, exc)
+            return {"failing": False, "state": "unknown", "total_count": 0}

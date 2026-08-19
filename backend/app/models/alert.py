@@ -74,5 +74,5 @@ class Alert(Base):
     )
 
     user = relationship("User")
-    pull_request = relationship("PullRequest")
+    pull_request = relationship("PullRequest", back_populates="alerts")
     reviewer = relationship("Reviewer")

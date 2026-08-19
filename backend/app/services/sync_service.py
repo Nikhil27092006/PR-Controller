@@ -418,19 +418,28 @@ class SyncService:
         # Second pass: extract "depends on #N" style references from
         # each PR body and store them as Dependency rows, now that
         # every PR in this repo has a known internal id.
-        self._sync_dependencies(db, repository, ranked_prs, pr_number_to_id)
+        try:
+            self._sync_dependencies(db, repository, ranked_prs, pr_number_to_id)
+        except Exception as exc:
+            logger.error("Error syncing dependencies for %s: %s", repository.full_name, exc, exc_info=True)
 
         # Third pass: sync requested reviewers for each PR.
-        self._sync_reviewers(db, repository, ranked_prs, pr_number_to_id)
+        try:
+            self._sync_reviewers(db, repository, ranked_prs, pr_number_to_id)
+        except Exception as exc:
+            logger.error("Error syncing reviewers for %s: %s", repository.full_name, exc, exc_info=True)
 
         # Fourth pass: fetch actual submitted reviews (with real
         # timestamps) for open PRs, to compute first_review_at and
         # power the PR detail timeline. Pass per_repo_github so
         # the user's OAuth token (not the server-wide token) is
         # used.
-        self._sync_reviews(
-            db, repository, ranked_prs, pr_number_to_id, per_repo_github
-        )
+        try:
+            self._sync_reviews(
+                db, repository, ranked_prs, pr_number_to_id, per_repo_github
+            )
+        except Exception as exc:
+            logger.error("Error syncing reviews for %s: %s", repository.full_name, exc, exc_info=True)
 
         try:
             repository.last_synced_at = datetime.utcnow()
@@ -505,15 +514,12 @@ class SyncService:
             pr["pending_reviews"] = len(requested)
 
         # ---- failing_checks ----
-        # One API call per open PR's head SHA. We deliberately
-        # skip merged/closed PRs — their CI status is historical
-        # and not relevant to "needs attention now" scoring.
-        # A rate limit here stops fetching further checks for
-        # this repo (not the whole sync batch); PRs that didn't
-        # get checked simply have failing_checks unset and the
-        # priority engine treats that as 0 / no contribution.
+        # One API call per open PR's head SHA. Limit to top 20 open PRs
+        # so large repositories do not exhaust GitHub API rate limits or
+        # cause request timeouts.
+        open_prs_for_checks = [p for p in prs if p.get("state") == "open"][:20]
         for pr in prs:
-            if pr.get("state") != "open":
+            if pr.get("state") != "open" or pr not in open_prs_for_checks:
                 pr["failing_checks"] = False
                 continue
 
@@ -532,18 +538,15 @@ class SyncService:
                 )
                 pr["failing_checks"] = bool(checks.get("failing"))
 
-            except GitHubRateLimitError:
+            except (GitHubRateLimitError, GitHubAuthError):
                 logger.warning(
                     "Rate limit hit fetching CI checks for %s — "
                     "skipping remaining checks for this repo",
                     repository.full_name,
                 )
-                # Anything not yet checked stays at its default;
-                # the priority engine treats missing failing_checks
-                # as 0 contribution.
                 break
 
-            except GitHubServiceError as exc:
+            except Exception as exc:
                 logger.warning(
                     "Failed to fetch CI checks for %s#%s: %s",
                     repository.full_name, pr.get("number"), exc,
@@ -702,19 +705,18 @@ class SyncService:
 
             db.commit()
 
-            # Recompute pending_reviews per reviewer from actual
-            # PRReviewer rows so Reviewer.pending_reviews always
-            # reflects reality rather than drifting out of sync.
+            # Recompute pending_reviews per reviewer in a single query
+            from sqlalchemy import func
+            counts = (
+                db.query(PRReviewer.reviewer_id, func.count(PRReviewer.id))
+                .filter(PRReviewer.status == "requested")
+                .group_by(PRReviewer.reviewer_id)
+                .all()
+            )
+            count_map = dict(counts)
             reviewers = db.query(Reviewer).all()
-
             for reviewer in reviewers:
-                pending_count = (
-                    db.query(PRReviewer)
-                    .filter(PRReviewer.reviewer_id == reviewer.id)
-                    .filter(PRReviewer.status == "requested")
-                    .count()
-                )
-                reviewer.pending_reviews = pending_count
+                reviewer.pending_reviews = count_map.get(reviewer.id, 0)
 
             db.commit()
 
@@ -762,7 +764,7 @@ class SyncService:
         if github is None:
             github = self.github
 
-        open_prs = [pr for pr in prs if pr.get("state") == "open"]
+        open_prs = [pr for pr in prs if pr.get("state") == "open"][:25]
 
         for pr in open_prs:
 
@@ -778,7 +780,7 @@ class SyncService:
                     pr["number"]
                 )
 
-            except GitHubRateLimitError:
+            except (GitHubRateLimitError, GitHubAuthError):
                 logger.warning(
                     "Rate limit hit fetching reviews for %s — "
                     "stopping review sync for this repo early",
@@ -786,7 +788,7 @@ class SyncService:
                 )
                 break
 
-            except GitHubServiceError as exc:
+            except Exception as exc:
                 logger.warning(
                     "Failed to fetch reviews for %s#%s: %s",
                     repository.full_name, pr["number"], exc

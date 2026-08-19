@@ -151,3 +151,9 @@ class PullRequest(Base):
         back_populates="pull_request",
         cascade="all, delete-orphan"
     )
+
+    alerts = relationship(
+        "Alert",
+        back_populates="pull_request",
+        cascade="all, delete-orphan"
+    )
