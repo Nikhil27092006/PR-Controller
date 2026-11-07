@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useApp } from '../../store/AppContext'
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 /**
  * Landing page for the GitHub OAuth round-trip.
  *
@@ -101,7 +103,7 @@ export default function GithubCallback() {
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
             <a
-              href="http://localhost:8000/auth/github/login"
+              href={`${BACKEND_URL}/auth/github/login`}
               className="btn btn-primary"
               style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
             >
