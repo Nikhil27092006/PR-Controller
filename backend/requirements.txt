@@ -15,7 +15,8 @@ psycopg2-binary
 
 # Data validation library. Validates API requests and responses
 # (e.g. PRResponse, ReviewerResponse).
-pydantic
+pydantic[email]
+email-validator
 
 # Loads configuration from environment variables (DB_CONNECTION,
 # GITHUB_TOKEN, SECRET_KEY, etc).
