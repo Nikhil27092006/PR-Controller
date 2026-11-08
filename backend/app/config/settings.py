@@ -38,5 +38,24 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
+    @property
+    def github_redirect_uri_clean(self) -> str:
+        """Return GITHUB_REDIRECT_URI with any accidental double https:// removed."""
+        uri = self.GITHUB_REDIRECT_URI.strip()
+        # Fix "https://https://..." or "http://https://..."
+        for bad in ("https://https://", "http://https://", "https://http://"):
+            if uri.startswith(bad):
+                uri = "https://" + uri[len(bad):]
+        return uri
+
+    @property
+    def frontend_url_clean(self) -> str:
+        """Return FRONTEND_URL with any accidental double https:// removed."""
+        url = self.FRONTEND_URL.strip()
+        for bad in ("https://https://", "http://https://", "https://http://"):
+            if url.startswith(bad):
+                url = "https://" + url[len(bad):]
+        return url
+
 
 settings = Settings()

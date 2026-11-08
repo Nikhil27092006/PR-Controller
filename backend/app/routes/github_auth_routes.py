@@ -54,7 +54,7 @@ OAUTH_STATE_TTL_MINUTES = 10
 
 def _frontend_callback_url() -> str:
     """Where the React app expects to receive the post-OAuth redirect."""
-    url = settings.FRONTEND_URL.rstrip("/")
+    url = settings.frontend_url_clean.rstrip("/")
     if not url.endswith("/github-callback"):
         url = f"{url}/github-callback"
     return url
@@ -320,7 +320,7 @@ def github_login(request: Request):
 
     params = {
         "client_id": settings.GITHUB_CLIENT_ID,
-        "redirect_uri": settings.GITHUB_REDIRECT_URI,
+        "redirect_uri": settings.github_redirect_uri_clean,
         # `repo` scope is what makes /user/repos return the user's
         # private repos in addition to the public ones they own.
         # Without it, OAuth users see only public repos and the
