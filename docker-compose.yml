@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: prflow-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: prflow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./prflow.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prflow-backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_CONNECTION: postgresql://postgres:password@db:5432/prflow_db
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://localhost:8000/auth/github/callback}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001/github-callback}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+      SECRET_KEY: ${SECRET_KEY:-change_this_to_a_random_jwt_secret_in_production}
+      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY:-change_this_to_a_random_session_secret_in_production}
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: prflow-frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_BACKEND_URL: http://localhost:8000
+    ports:
+      - "3001:80"
+
+volumes:
+  pgdata:
+

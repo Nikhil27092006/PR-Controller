@@ -10,8 +10,9 @@ uvicorn[standard]
 # Dependency, Repository, and User tables.
 sqlalchemy
 
-# PostgreSQL database driver. Connects SQLAlchemy to PostgreSQL.
+# PostgreSQL database drivers. Connects SQLAlchemy to PostgreSQL.
 psycopg2-binary
+psycopg[binary]
 
 # Data validation library. Validates API requests and responses
 # (e.g. PRResponse, ReviewerResponse).

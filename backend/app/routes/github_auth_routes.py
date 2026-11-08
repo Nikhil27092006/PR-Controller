@@ -54,8 +54,10 @@ OAUTH_STATE_TTL_MINUTES = 10
 
 def _frontend_callback_url() -> str:
     """Where the React app expects to receive the post-OAuth redirect."""
-    # FRONTEND_URL now includes the full callback path (e.g. /github-callback)
-    return settings.FRONTEND_URL.rstrip("/")
+    url = settings.FRONTEND_URL.rstrip("/")
+    if not url.endswith("/github-callback"):
+        url = f"{url}/github-callback"
+    return url
 
 
 def _build_oauth_state() -> str:
