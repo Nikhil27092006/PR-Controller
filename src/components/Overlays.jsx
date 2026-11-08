@@ -115,33 +115,29 @@ function Scene1() {
       }}
     >
       {/* Floating status chips — top left */}
-      <Reveal delay={800} dir="left" className="" style={{}}>
-        <div style={{
-          position: 'absolute', top: '28%', left: '5%',
-          display: 'flex', flexDirection: 'column', gap: '0.5rem',
-          pointerEvents: 'none',
-        }}>
+      <div className="hero-floating-chips hero-chips-left">
+        <Reveal delay={800} dir="left">
           <div className="tag tag-red">
             <span className="tag-dot" style={{ background: '#f87171' }} />
             34 PRs awaiting review
           </div>
+        </Reveal>
+        <Reveal delay={950} dir="left">
           <div className="tag tag-amber">
             <span className="tag-dot" style={{ background: '#fbbf24' }} />
             review_queue: critical
           </div>
-          <div className="tag" style={{ animationDelay: '200ms' }}>
+        </Reveal>
+        <Reveal delay={1100} dir="left">
+          <div className="tag">
             <span className="tag-dot" style={{ background: '#8b5cf6' }} />
             priority: unknown
           </div>
-        </div>
-      </Reveal>
+        </Reveal>
+      </div>
 
       {/* Floating status chips — top right */}
-      <div style={{
-        position: 'absolute', top: '25%', right: '5%',
-        display: 'flex', flexDirection: 'column', gap: '0.5rem',
-        pointerEvents: 'none',
-      }}>
+      <div className="hero-floating-chips hero-chips-right">
         <Reveal delay={1000} dir="right">
           <div className="tag tag-red">
             <span className="tag-dot" style={{ background: '#f87171' }} />
@@ -163,7 +159,7 @@ function Scene1() {
       </div>
 
       {/* Hero headline — center */}
-      <div className="hero-block" style={{ position: 'relative', zIndex: 5 }}>
+      <div className="hero-block" style={{ position: 'relative', zIndex: 10 }}>
         <Reveal delay={200}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
             <span className="eyebrow">
