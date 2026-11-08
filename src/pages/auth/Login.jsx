@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../../store/AppContext'
 // Use the backend URL directly for OAuth — the flow needs a stable
 // server-side redirect URI that matches what's registered on GitHub.
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8000'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function Login() {
   const { login } = useApp()
