@@ -35,6 +35,7 @@ vite.log
 
 # Database dumps & local sqlite
 *.sql
+!supabase_setup.sql
 prflow.sql
 *.db
 *.sqlite
